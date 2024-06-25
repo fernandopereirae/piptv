@@ -14,7 +14,6 @@ document.addEventListener("DOMContentLoaded", function() {
     let channelsData = {};
 
     const categoryContainer = document.getElementById('category-container');
-    const loader = document.getElementById('loader');
 
     // Função para fazer requisições fetch com timeout
     function fetchWithTimeout(resource, options = {}) {
@@ -104,11 +103,10 @@ document.addEventListener("DOMContentLoaded", function() {
                 categoryContainer.appendChild(categoryDiv);
             }
 
-            loader.style.display = 'none';
-            categoryContainer.style.display = 'block';
+            categoryContainer.style.display = 'block'; // Mostra o container de categorias após o carregamento
         } catch (error) {
             console.error('Erro ao carregar categorias:', error);
-            loader.textContent = 'Erro ao carregar categorias. Tente novamente mais tarde.';
+            logTextarea.textContent = 'Erro ao carregar categorias. Tente novamente mais tarde.';
         }
     }
 
