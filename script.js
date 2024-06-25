@@ -2,6 +2,7 @@ document.addEventListener("DOMContentLoaded", async function() {
     const url = sessionStorage.getItem('baseURL');
     const login = sessionStorage.getItem('baseLogin');
     const password = sessionStorage.getItem('basePassword');
+    const logTextarea = document.getElementById('logTextarea');
 
     if (!url || !login || !password) {
         log('Credenciais não encontradas.');
@@ -14,7 +15,6 @@ document.addEventListener("DOMContentLoaded", async function() {
 
     const categoryContainer = document.getElementById('category-container');
     const loader = document.getElementById('loader');
-    const logTextarea = document.getElementById('logTextarea');
 
     // Função para fazer requisições fetch com timeout
     async function fetchWithTimeout(resource, options = {}) {
