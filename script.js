@@ -47,7 +47,6 @@ document.addEventListener("DOMContentLoaded", async function() {
         if (cachedCategories) {
             categoriesData = JSON.parse(cachedCategories);
         } else {
-            log('Buscando categorias...');
             try {
                 const response = await fetchWithTimeout(`${url}/player_api.php?username=${login}&password=${password}&action=get_live_categories`);
                 categoriesData = JSON.parse(response);
@@ -65,7 +64,6 @@ document.addEventListener("DOMContentLoaded", async function() {
         if (cachedChannels) {
             channelsData[categoryId] = JSON.parse(cachedChannels);
         } else {
-            log(`Buscando canais para a categoria ${categoryId}...`);
             try {
                 const response = await fetchWithTimeout(`${url}/player_api.php?username=${login}&password=${password}&action=get_live_streams&category_id=${categoryId}`);
                 channelsData[categoryId] = JSON.parse(response);
