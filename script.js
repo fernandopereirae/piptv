@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", async function() {
+document.addEventListener("DOMContentLoaded", function() {
     const url = sessionStorage.getItem('baseURL');
     const login = sessionStorage.getItem('baseLogin');
     const password = sessionStorage.getItem('basePassword');
@@ -17,25 +17,22 @@ document.addEventListener("DOMContentLoaded", async function() {
     async function fetchWithTimeout(resource, options = {}) {
         const { timeout = 10000 } = options;
 
-        const controller = new AbortController();
-        const id = setTimeout(() => controller.abort(), timeout);
-        try {
-            const response = await fetch(resource, {
-                ...options,
-                signal: controller.signal
-            });
+        return new Promise((resolve, reject) => {
+            const timer = setTimeout(() => {
+                reject(new Error('Timeout da requisição.'));
+            }, timeout);
 
-            if (!response.ok) {
-                throw new Error('Erro na requisição: ' + response.statusText);
-            }
-            
-            return await response.text();
-        } catch (error) {
-            log(`Erro na requisição: ${error.message}`);
-            throw error;
-        } finally {
-            clearTimeout(id);
-        }
+            fetch(resource, options)
+                .then(response => {
+                    clearTimeout(timer);
+                    if (!response.ok) {
+                        throw new Error('Erro na requisição: ' + response.statusText);
+                    }
+                    return response.text();
+                })
+                .then(resolve)
+                .catch(reject);
+        });
     }
 
     // Inicialização da aplicação
@@ -66,5 +63,5 @@ document.addEventListener("DOMContentLoaded", async function() {
     }
 
     // Iniciar a aplicação
-    await init();
+    init();
 });
