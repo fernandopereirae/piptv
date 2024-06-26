@@ -1,1 +1,126 @@
+/* Configuração geral do corpo */
+body {
+    height: 100%;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    font-family: Arial, sans-serif;
+    background-color: #141414;
+    color: white;
+    overflow-x: hidden;
+}
 
+/* Container de login */
+.login-container {
+    text-align: center;
+    border: 1px solid #333;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    background-color: #1f1f1f;
+    color: white;
+    margin-top: 20vh;
+}
+
+.login-container input {
+    width: 80%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #555;
+    border-radius: 5px;
+    background-color: #333;
+    color: white;
+}
+
+.login-container button {
+    width: 86%;
+    padding: 10px;
+    background-color: #e50914;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.login-container button:hover {
+    background-color: #f6121d;
+}
+
+/* Container de categorias */
+.category-container {
+    width: 100%;
+    padding: 20px;
+    margin-top: 20px;
+    background-color: #141414;
+}
+
+/* Estilo dos títulos das categorias */
+.category h2 {
+    font-size: 24px;
+    margin-bottom: 10px;
+    padding: 10px;
+    border-left: 5px solid #e50914;
+    color: #fff;
+}
+
+/* Estilo para a lista de canais */
+.channel-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px,4fr));
+    gap: 20px;
+    padding: 10px;
+}
+
+/* Estilo para cada item de canal */
+.channel-item {
+    padding: 15px;
+    background-color: #1f1f1f;
+    border: none;
+    border-radius: 10px;
+    text-align: center;
+    color: white;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.channel-item:hover {
+    background-color: #333;
+    transform: scale(1.05);
+}
+
+/* Estilo para o nome do canal */
+.channel-name {
+    font-size: 14px;
+    margin-top: 10px;
+    color: #fff;
+}
+
+/* Estilo para o ícone do canal */
+.channel-icon {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+#loader {
+  display: none;
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 50px;
+  height: 50px;
+  border: 5px solid #f44336; /* Cor vermelha */
+  border-radius: 50%;
+  border-top: 5px solid #ffeb3b; /* Cor amarela para o topo */
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
