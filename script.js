@@ -1,15 +1,9 @@
 document.addEventListener("DOMContentLoaded", async function() {
-    const url = sessionStorage.getItem('baseURL');
-    const login = sessionStorage.getItem('baseLogin');
-    const password = sessionStorage.getItem('basePassword');
     const loader = document.getElementById('loader');
     const categoryContainer = document.getElementById('category-container');
     const logTextarea = document.getElementById('log'); // Elemento para exibir log de mensagens
 
-    if (!url || !login || !password) {
-        window.location.href = 'index.html'; // Redireciona se as credenciais não forem encontradas
-        return;
-    }
+    let baseURL, baseLogin, basePassword;
 
     // Função para fazer requisições fetch com timeout
     function fetchWithTimeout(resource, options = {}) {
@@ -41,69 +35,68 @@ document.addEventListener("DOMContentLoaded", async function() {
     }
 
     // Função para carregar categorias
-    async function loadCategories() {
-        const cachedCategories = sessionStorage.getItem('categoriesData');
-        if (cachedCategories) {
-            return JSON.parse(cachedCategories);
-        } else {
-            try {
-                const response = await fetchWithTimeout(`${url}/player_api.php?username=${login}&password=${password}&action=get_live_categories`);
-                const categoriesData = JSON.parse(response);
-                sessionStorage.setItem('categoriesData', JSON.stringify(categoriesData));
-                return categoriesData;
-            } catch (error) {
-                logError('Erro ao buscar categorias:', error);
-                throw error;
-            }
+    async function loadCategories(url, login, password) {
+        try {
+            const response = await fetchWithTimeout(`${url}/player_api.php?username=${login}&password=${password}&action=get_live_categories`);
+            const categoriesData = JSON.parse(response);
+            return categoriesData;
+        } catch (error) {
+            const errorMessage = 'Erro ao buscar categorias: ' + error.message;
+            log(errorMessage);
+            throw error;
         }
     }
 
     // Função para carregar canais de uma categoria específica
-    async function loadChannels(categoryId) {
-        const cachedChannels = sessionStorage.getItem(`channelsData_${categoryId}`);
-        if (cachedChannels) {
-            return JSON.parse(cachedChannels);
-        } else {
-            try {
-                const response = await fetchWithTimeout(`${url}/player_api.php?username=${login}&password=${password}&action=get_live_streams&category_id=${categoryId}`);
-                const channelsData = JSON.parse(response);
-                sessionStorage.setItem(`channelsData_${categoryId}`, JSON.stringify(channelsData));
-                return channelsData;
-            } catch (error) {
-                logError('Erro ao buscar canais:', error);
-                throw error;
-            }
+    async function loadChannels(url, login, password, categoryId) {
+        try {
+            const response = await fetchWithTimeout(`${url}/player_api.php?username=${login}&password=${password}&action=get_live_streams&category_id=${categoryId}`);
+            const channelsData = JSON.parse(response);
+            return channelsData;
+        } catch (error) {
+            const errorMessage = 'Erro ao buscar canais: ' + error.message;
+            log(errorMessage);
+            throw error;
         }
     }
 
-    // Função para adicionar categorias ao DOM
-    function renderCategories(categories) {
-        categoryContainer.innerHTML = '';
+    // Função para renderizar categorias e canais
+    async function renderCategoriesAndChannels(url, login, password) {
+        try {
+            loader.style.display = 'block'; // Mostra o loader enquanto carrega
 
-        categories.forEach(async category => {
-            const categoryDiv = document.createElement('div');
-            categoryDiv.className = 'category';
+            const categories = await loadCategories(url, login, password);
 
-            const categoryTitle = document.createElement('h2');
-            categoryTitle.textContent = category.category_name;
-            categoryDiv.appendChild(categoryTitle);
+            categoryContainer.innerHTML = ''; // Limpa o container de categorias antes de adicionar novas
 
-            const channelList = document.createElement('div');
-            channelList.className = 'channel-list';
+            for (const category of categories) {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'category';
 
-            try {
-                const channels = await loadChannels(category.category_id);
+                const categoryTitle = document.createElement('h2');
+                categoryTitle.textContent = category.category_name;
+                categoryDiv.appendChild(categoryTitle);
+
+                const channelList = document.createElement('div');
+                channelList.className = 'channel-list';
+
+                const channels = await loadChannels(url, login, password, category.category_id);
                 appendChannels(channels, channelList);
-            } catch (error) {
-                logError('Erro ao carregar canais da categoria ' + category.category_name, error);
+
+                categoryDiv.appendChild(channelList);
+                categoryContainer.appendChild(categoryDiv);
             }
 
-            categoryDiv.appendChild(channelList);
-            categoryContainer.appendChild(categoryDiv);
-        });
+            // Mostra container de categorias após o carregamento
+            categoryContainer.style.display = 'block';
 
-        // Mostra container de categorias após o carregamento
-        categoryContainer.style.display = 'block';
+            // Esconder o loader após o carregamento
+            loader.style.display = 'none';
+        } catch (error) {
+            const errorMessage = 'Erro ao carregar categorias: ' + error.message;
+            log(errorMessage);
+            categoryContainer.innerHTML = 'Erro ao carregar categorias. Tente novamente mais tarde.';
+        }
     }
 
     // Função para adicionar canais ao DOM
@@ -127,7 +120,7 @@ document.addEventListener("DOMContentLoaded", async function() {
             container.appendChild(card);
 
             card.addEventListener('click', function() {
-                playChannel(url, login, password, this.dataset.streamId);
+                playChannel(baseURL, baseLogin, basePassword, this.dataset.streamId);
             });
         });
     }
@@ -139,41 +132,25 @@ document.addEventListener("DOMContentLoaded", async function() {
         window.location.href = `playerv.html?streamUrl=${encodeURIComponent(streamURL)}`;
     }
 
-    // Função para exibir mensagens de erro no log
-    function logError(message, error) {
+    // Função para exibir mensagens de log
+    function log(message) {
         const timestamp = new Date().toLocaleTimeString();
-        const errorMessage = `[${timestamp}] ${message}: ${error.message}`;
-        logTextarea.textContent += errorMessage + '\n';
+        logTextarea.textContent += `[${timestamp}] ${message}\n`;
         logTextarea.style.display = 'block'; // Garante que o log seja visível
-        console.error(errorMessage); // Também exibe no console para fins de depuração
+        console.log(message); // Também exibe no console para fins de depuração
     }
 
-    // Função para exibir mensagem de carregamento no log
-    function logLoading(message) {
-        const timestamp = new Date().toLocaleTimeString();
-        const loadingMessage = `[${timestamp}] ${message}`;
-        logTextarea.textContent += loadingMessage + '\n';
-        logTextarea.style.display = 'block'; // Garante que o log seja visível
-        console.log(loadingMessage); // Também exibe no console para fins de depuração
+    // Iniciar a aplicação ao carregar o DOM
+    const storedURL = sessionStorage.getItem('baseURL');
+    const storedLogin = sessionStorage.getItem('baseLogin');
+    const storedPassword = sessionStorage.getItem('basePassword');
+
+    if (storedURL && storedLogin && storedPassword) {
+        baseURL = storedURL;
+        baseLogin = storedLogin;
+        basePassword = storedPassword;
+        renderCategoriesAndChannels(baseURL, baseLogin, basePassword);
+    } else {
+        window.location.href = 'index.html'; // Redireciona se as credenciais não forem encontradas
     }
-
-    // Iniciar a aplicação
-    async function init() {
-        try {
-            logLoading('Carregando categorias...');
-            loader.style.display = 'block'; // Mostra o loader enquanto carrega
-
-            const categories = await loadCategories();
-            renderCategories(categories);
-
-            // Esconder o loader após o carregamento
-            loader.style.display = 'none';
-        } catch (error) {
-            logError('Erro ao carregar categorias', error);
-            categoryContainer.innerHTML = 'Erro ao carregar categorias. Tente novamente mais tarde.';
-        }
-    }
-
-    // Inicializar a aplicação
-    init();
 });
