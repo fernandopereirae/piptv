@@ -124,15 +124,3 @@ body {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
-
-#log {
-            width: 90%;
-            height: 100px;
-            margin-top: 20px;
-            padding: 10px;
-            font-family: monospace;
-            background-color: #f8f8f8;
-            border: 1px solid #e0e0e0;
-            border-radius: 5px;
-            overflow-y: auto;
-        }
