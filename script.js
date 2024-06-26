@@ -1,19 +1,18 @@
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", async function() {
     const url = sessionStorage.getItem('baseURL');
     const login = sessionStorage.getItem('baseLogin');
     const password = sessionStorage.getItem('basePassword');
     const logTextarea = document.getElementById('logTextarea');
+    const categoryContainer = document.getElementById('category-container');
 
     if (!url || !login || !password) {
         log('Credenciais não encontradas.');
-        window.location.href = 'index.html'; // Redireciona para a página inicial se as credenciais não estiverem disponíveis
+        window.location.href = 'index.html';
         return;
     }
 
     let categoriesData = [];
     let channelsData = {};
-
-    const categoryContainer = document.getElementById('category-container');
 
     // Função para fazer requisições fetch com timeout
     function fetchWithTimeout(resource, options = {}) {
@@ -83,6 +82,7 @@ document.addEventListener("DOMContentLoaded", function() {
         try {
             await loadCategories();
 
+            // Limpar container antes de adicionar novos elementos
             categoryContainer.innerHTML = '';
 
             for (const category of categoriesData) {
@@ -103,10 +103,11 @@ document.addEventListener("DOMContentLoaded", function() {
                 categoryContainer.appendChild(categoryDiv);
             }
 
-            categoryContainer.style.display = 'block'; // Mostra o container de categorias após o carregamento
+            // Mostrar container de categorias após o carregamento
+            categoryContainer.style.display = 'block';
         } catch (error) {
             console.error('Erro ao carregar categorias:', error);
-            logTextarea.textContent = 'Erro ao carregar categorias. Tente novamente mais tarde.';
+            logTextarea.value = 'Erro ao carregar categorias. Tente novamente mais tarde.';
         }
     }
 
