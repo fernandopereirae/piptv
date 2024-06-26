@@ -1,43 +1,23 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Player IPTV</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>IPTV Login</title>
+    <link rel="stylesheet" type="text/css" href="styles.css">
 </head>
 <body>
-	<h2>Player IPTV</h2>
-        	<form id="loginForm">
-                <div class="input-group">
-                    <label for="urlInput">URL:</label>
-                    <input type="text" id="urlInput" required>
-                </div>
-                <div class="input-group">
-                    <label for="loginInput">Login:</label>
-                    <input type="text" id="loginInput" required>
-                </div>
-                <div class="input-group">
-                    <label for="passwordInput">Senha:</label>
-                    <input type="password" id="passwordInput" required>
-                </div>
-                <button type="submit">Entrar</button>
-                <button id="logoutButton">Sair do Login</button>
-            </form>            
-            <div class="input-group">
-                <select id="channelList">
-                    <option value="">Selecione um canal</option>
-                </select>
-              <div class="input-group">
-            <button id="toggleLoginForm">Mostrar/Esconder Login</button>
-          </div>
-         </div>
-        <div class="input-video">
-            <video id="iptvPlayer" controls></video>
-        </div>
+    <div class="login-container" id="loginContainer">
+        <h2>Login</h2>
+        <form id="loginForm">
+            <input type="text" id="urlInput" placeholder="URL" required><br>
+            <input type="text" id="loginInput" placeholder="Login" required><br>
+            <input type="text" id="passwordInput" placeholder="Password" required><br>
+            <button type="submit">Entrar</button>
+        </form>
+        <select id="channelList" style="display:none;"></select>
+        <video id="iptvPlayer" controls style="display:none;"></video>
     </div>
-    <script src="script.js"></script>
+    <script src="login.js">
+  
+  </script>
 </body>
 </html>
-
- 

@@ -1,145 +1,155 @@
-let baseURL, baseLogin, basePassword;
+document.addEventListener("DOMContentLoaded", async function() {
+    const url = sessionStorage.getItem('baseURL');
+    const login = sessionStorage.getItem('baseLogin');
+    const password = sessionStorage.getItem('basePassword');
+    const loader = document.getElementById('loader');
+    const categoryContainer = document.getElementById('category-container');
 
-function fetchChannels(url, login, password) {
-    baseURL = url;
-    baseLogin = login;
-    basePassword = password;
+    if (!url || !login || !password) {
+        window.location.href = 'index.html'; // Redireciona se as credenciais não forem encontradas
+        return;
+    }
 
-    fetch(`${url}/player_api.php?username=${login}&password=${password}&action=get_live_streams`)
-    .then(response => response.json())
-    .then(data => {
-        console.log('Dados recebidos da API:', data);
-        const channelList = document.getElementById('channelList');
-        channelList.innerHTML = ''; // Limpa a lista de canais antes de adicionar novos
+    // Função para fazer requisições fetch com timeout
+    function fetchWithTimeout(resource, options = {}) {
+        const { timeout = 10000 } = options;
 
-        if (data && Array.isArray(data)) {
-            data.forEach(channel => {
-                const option = document.createElement('option');
-                option.value = channel.stream_id;
-                option.text = channel.name;
-                channelList.appendChild(option);
+        return new Promise((resolve, reject) => {
+            const controller = new AbortController();
+            const id = setTimeout(() => {
+                controller.abort();
+                reject(new Error('Timeout da requisição.'));
+            }, timeout);
+
+            fetch(resource, {
+                ...options,
+                signal: controller.signal
+            })
+            .then(response => {
+                clearTimeout(id);
+                if (!response.ok) {
+                    throw new Error('Erro na requisição: ' + response.statusText);
+                }
+                return response.text();
+            })
+            .then(resolve)
+            .catch(error => {
+                reject(error);
             });
+        });
+    }
 
-            // Exibe a lista de canais após preencher
-            document.getElementById('channelList').style.display = 'block';
+    // Função para carregar categorias
+    async function loadCategories() {
+        const cachedCategories = sessionStorage.getItem('categoriesData');
+        if (cachedCategories) {
+            return JSON.parse(cachedCategories);
         } else {
-            console.error('Formato de dados inesperado:', data);
-        }
-    })
-    .catch(error => {
-        console.error('Erro ao buscar canais:', error);
-    });
-}
-
-function login() {
-    const url = document.getElementById('urlInput').value;
-    const login = document.getElementById('loginInput').value;
-    const password = document.getElementById('passwordInput').value;
-
-    fetchChannels(url, login, password);
-}
-
-document.getElementById('loginForm').addEventListener('submit', function(event) {
-    event.preventDefault();    
-    // Impede o envio do formulário
-    login();
-});
-
-document.getElementById('channelList').addEventListener('change', function() {
-    const selectedChannelId = this.value;
-    const player = document.getElementById('iptvPlayer');
-
-    if (selectedChannelId) {
-        const streamURL = `${baseURL}/live/${baseLogin}/${basePassword}/${selectedChannelId}.m3u8`;
-        player.src = streamURL;
-
-        // Adicionar eventos de carregamento e erros
-        player.addEventListener('canplay', () => {
-            console.log('O vídeo está pronto para ser reproduzido.');
-            player.play();
-            toggleFullscreen(player); // Chama a função para colocar o vídeo em tela cheia
-        });
-
-        player.addEventListener('error', (error) => {
-            console.error('Erro ao reproduzir o vídeo:', error);
-        });
-
-        player.addEventListener('stalled', () => {
-            console.warn('A transmissão do vídeo foi interrompida.');
-        });
-
-        player.addEventListener('waiting', () => {
-            console.log('Esperando por mais dados...');
-        });
-
-        console.log('Reproduzindo canal:', streamURL);
-    }
-});
-
-document.getElementById('toggleLoginForm').addEventListener('click', function() {
-    const loginForm = document.getElementById('loginForm');
-    const channelList = document.getElementById('channelList');
-
-    if (loginForm.style.display === 'none' || loginForm.style.display === '') {
-        loginForm.style.display = 'block';
-        channelList.style.display = 'block';
-    } else {
-        loginForm.style.display = 'none';
-    }
-});
-
-// Função para lidar com o botão de sair do login
-function logout() {
-    const channelList = document.getElementById('channelList');
-    const urlInput = document.getElementById('urlInput');
-    const loginInput = document.getElementById('loginInput');
-    const passwordInput = document.getElementById('passwordInput');
-
-    // Limpar os campos de login
-    urlInput.value = '';
-    loginInput.value = '';
-    passwordInput.value = '';
-
-    // Limpar a lista de canais
-    channelList.innerHTML = '<option value="">Selecione um canal</option>';
-
-    // Mostrar os elementos de login e esconder o botão de sair
-    toggleLoginElements('block');
-}
-
-// Função para lidar com o envio do formulário de login
-function handleLoginFormSubmit(event) {
-    event.preventDefault();
-    login();
-}
-
-// Adicionar ouvinte de eventos para o envio do formulário de login
-document.getElementById('loginForm').addEventListener('submit', handleLoginFormSubmit);
-
-// Adicionar ouvinte de eventos para o botão de sair
-document.getElementById('logoutButton').addEventListener('click', logout);
-
-// Função para colocar o vídeo em tela cheia
-function toggleFullscreen(element) {
-    if (!document.fullscreenElement) {
-        if (element.requestFullscreen) {
-            element.requestFullscreen();
-        } else if (element.mozRequestFullScreen) { /* Firefox */
-            element.mozRequestFullScreen();
-        } else if (element.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
-            element.webkitRequestFullscreen();
-        } else if (element.msRequestFullscreen) { /* IE/Edge */
-            element.msRequestFullscreen();
-        }
-    } else {
-        if (document.exitFullscreen) {
-            document.exitFullscreen();
-        } else if (document.mozCancelFullScreen) { /* Firefox */
-            document.mozCancelFullScreen();
-        } else if (document.webkitExitFullscreen) { /* Chrome, Safari & Opera */
-            document.webkitExitFullscreen();
-        } else if (document.msExitFullscreen) { /* IE/Edge */
-            document.msExitFullscreen();
+            try {
+                const response = await fetchWithTimeout(`${url}/player_api.php?username=${login}&password=${password}&action=get_live_categories`);
+                const categoriesData = JSON.parse(response);
+                sessionStorage.setItem('categoriesData', JSON.stringify(categoriesData));
+                return categoriesData;
+            } catch (error) {
+                console.error('Erro ao buscar categorias:', error);
+                throw error;
+            }
         }
     }
-}
+
+    // Função para carregar canais de uma categoria específica
+    async function loadChannels(categoryId) {
+        const cachedChannels = sessionStorage.getItem(`channelsData_${categoryId}`);
+        if (cachedChannels) {
+            return JSON.parse(cachedChannels);
+        } else {
+            try {
+                const response = await fetchWithTimeout(`${url}/player_api.php?username=${login}&password=${password}&action=get_live_streams&category_id=${categoryId}`);
+                const channelsData = JSON.parse(response);
+                sessionStorage.setItem(`channelsData_${categoryId}`, JSON.stringify(channelsData));
+                return channelsData;
+            } catch (error) {
+                console.error('Erro ao buscar canais:', error);
+                throw error;
+            }
+        }
+    }
+
+    // Função para adicionar categorias ao DOM
+    function renderCategories(categories) {
+        categoryContainer.innerHTML = '';
+
+        categories.forEach(async category => {
+            const categoryDiv = document.createElement('div');
+            categoryDiv.className = 'category';
+
+            const categoryTitle = document.createElement('h2');
+            categoryTitle.textContent = category.category_name;
+            categoryDiv.appendChild(categoryTitle);
+
+            const channelList = document.createElement('div');
+            channelList.className = 'channel-list';
+
+            const channels = await loadChannels(category.category_id);
+            appendChannels(channels, channelList);
+
+            categoryDiv.appendChild(channelList);
+            categoryContainer.appendChild(categoryDiv);
+        });
+
+        // Mostra container de categorias após o carregamento
+        categoryContainer.style.display = 'block';
+    }
+
+    // Função para adicionar canais ao DOM
+    function appendChannels(channels, container) {
+        channels.forEach(channel => {
+            const card = document.createElement('div');
+            card.className = 'channel-item';
+            card.dataset.streamId = channel.stream_id;
+
+            const channelIcon = document.createElement('img');
+            channelIcon.src = channel.stream_icon || '';
+            channelIcon.alt = channel.name;
+            channelIcon.className = 'channel-icon';
+
+            const channelName = document.createElement('p');
+            channelName.className = 'channel-name';
+            channelName.textContent = channel.name;
+
+            card.appendChild(channelIcon);
+            card.appendChild(channelName);
+            container.appendChild(card);
+
+            card.addEventListener('click', function() {
+                playChannel(url, login, password, this.dataset.streamId);
+            });
+        });
+    }
+
+    // Função para iniciar a reprodução de um canal
+    function playChannel(url, login, password, streamId) {
+        const streamURL = `${url}/live/${login}/${password}/${streamId}.m3u8`;
+        sessionStorage.setItem('lastPlayedStream', streamURL);
+        window.location.href = `playerv.html?streamUrl=${encodeURIComponent(streamURL)}`;
+    }
+
+    // Iniciar a aplicação
+    async function init() {
+        try {
+            loader.style.display = 'block'; // Mostra o loader enquanto carrega
+
+            const categories = await loadCategories();
+            renderCategories(categories);
+
+            // Esconder o loader após o carregamento
+            loader.style.display = 'none';
+        } catch (error) {
+            console.error('Erro ao carregar categorias:', error);
+            categoryContainer.innerHTML = 'Erro ao carregar categorias. Tente novamente mais tarde.';
+        }
+    }
+
+    // Inicializar a aplicação
+    init();
+});
