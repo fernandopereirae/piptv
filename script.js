@@ -52,8 +52,7 @@ document.addEventListener("DOMContentLoaded", async function() {
                 sessionStorage.setItem('categoriesData', JSON.stringify(categoriesData));
                 return categoriesData;
             } catch (error) {
-                const errorMessage = 'Erro ao buscar categorias: ' + error.message;
-                log(errorMessage);
+                logError('Erro ao buscar categorias:', error);
                 throw error;
             }
         }
@@ -71,8 +70,7 @@ document.addEventListener("DOMContentLoaded", async function() {
                 sessionStorage.setItem(`channelsData_${categoryId}`, JSON.stringify(channelsData));
                 return channelsData;
             } catch (error) {
-                const errorMessage = 'Erro ao buscar canais: ' + error.message;
-                log(errorMessage);
+                logError('Erro ao buscar canais:', error);
                 throw error;
             }
         }
@@ -93,8 +91,12 @@ document.addEventListener("DOMContentLoaded", async function() {
             const channelList = document.createElement('div');
             channelList.className = 'channel-list';
 
-            const channels = await loadChannels(category.category_id);
-            appendChannels(channels, channelList);
+            try {
+                const channels = await loadChannels(category.category_id);
+                appendChannels(channels, channelList);
+            } catch (error) {
+                logError('Erro ao carregar canais da categoria ' + category.category_name, error);
+            }
 
             categoryDiv.appendChild(channelList);
             categoryContainer.appendChild(categoryDiv);
@@ -137,17 +139,28 @@ document.addEventListener("DOMContentLoaded", async function() {
         window.location.href = `playerv.html?streamUrl=${encodeURIComponent(streamURL)}`;
     }
 
-    // Função para exibir mensagens de log
-    function log(message) {
+    // Função para exibir mensagens de erro no log
+    function logError(message, error) {
         const timestamp = new Date().toLocaleTimeString();
-        logTextarea.textContent += `[${timestamp}] ${message}\n`;
+        const errorMessage = `[${timestamp}] ${message}: ${error.message}`;
+        logTextarea.textContent += errorMessage + '\n';
         logTextarea.style.display = 'block'; // Garante que o log seja visível
-        console.log(message); // Também exibe no console para fins de depuração
+        console.error(errorMessage); // Também exibe no console para fins de depuração
+    }
+
+    // Função para exibir mensagem de carregamento no log
+    function logLoading(message) {
+        const timestamp = new Date().toLocaleTimeString();
+        const loadingMessage = `[${timestamp}] ${message}`;
+        logTextarea.textContent += loadingMessage + '\n';
+        logTextarea.style.display = 'block'; // Garante que o log seja visível
+        console.log(loadingMessage); // Também exibe no console para fins de depuração
     }
 
     // Iniciar a aplicação
     async function init() {
         try {
+            logLoading('Carregando categorias...');
             loader.style.display = 'block'; // Mostra o loader enquanto carrega
 
             const categories = await loadCategories();
@@ -156,8 +169,7 @@ document.addEventListener("DOMContentLoaded", async function() {
             // Esconder o loader após o carregamento
             loader.style.display = 'none';
         } catch (error) {
-            const errorMessage = 'Erro ao carregar categorias: ' + error.message;
-            log(errorMessage);
+            logError('Erro ao carregar categorias', error);
             categoryContainer.innerHTML = 'Erro ao carregar categorias. Tente novamente mais tarde.';
         }
     }
