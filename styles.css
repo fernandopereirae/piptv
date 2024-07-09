@@ -136,11 +136,22 @@ body {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+#loading-indicator {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: block;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000; /* Ajuste conforme necessário */
+}
 
-#status-message {
-    display: none; /* Inicialmente oculto */
-    margin: 10px; /* Ajuste conforme necessário */
-    padding: 10px; /* Ajuste conforme necessário */
-    background-color: #f0f0f0; /* Cor de fundo */
-    border: 1px solid #ccc; /* Borda */
+.loading-success {
+    background-color: #4CAF50; /* Verde */
+}
+
+.loading-error {
+    background-color: #f44336; /* Vermelho */
 }
