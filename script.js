@@ -1,52 +1,82 @@
 document.addEventListener("DOMContentLoaded", async function() {
-    const loader = document.getElementById('loader');
+    const url = sessionStorage.getItem('baseURL');
+    const login = sessionStorage.getItem('baseLogin');
+    const password = sessionStorage.getItem('basePassword');
+
+    if (!url || !login || !password) {
+        console.error('Credenciais não encontradas.');
+        window.location.href = 'index.html'; // Redireciona para a página inicial se as credenciais não estiverem disponíveis
+        return;
+    }
+
+    let categoriesData = [];
+    let channelsData = {};
+
     const categoryContainer = document.getElementById('category-container');
+    const loader = document.getElementById('loader');
 
-    let baseURL, baseLogin, basePassword;
-
-    // Função para fazer requisições fetch com timeout
-    async function fetchWithTimeout(resource, options = {}) {
-        const { timeout = 10000 } = options;
-
-        const controller = new AbortController();
-        const id = setTimeout(() => {
-            controller.abort();
-        }, timeout);
-
-        const response = await fetch(resource, {
-            ...options,
-            signal: controller.signal
+    // Função para fazer requisições XMLHttpRequest com timeout
+    function fetchWithTimeout(url, timeout = 10000) {
+        return new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.timeout = timeout;
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    if (xhr.status === 200) {
+                        resolve(xhr.responseText);
+                    } else {
+                        reject(new Error('Erro na requisição: ' + xhr.statusText));
+                    }
+                }
+            };
+            xhr.ontimeout = function() {
+                reject(new Error('Timeout de requisição'));
+            };
+            xhr.open('GET', url, true);
+            xhr.send();
         });
-
-        clearTimeout(id);
-
-        if (!response.ok) {
-            throw new Error('Erro na requisição: ' + response.statusText);
-        }
-
-        return await response.json();
     }
 
     // Função para carregar categorias
-    async function loadCategories(url, login, password) {
-        return await fetchWithTimeout(`${url}/player_api.php?username=${login}&password=${password}&action=get_live_categories`);
+    async function loadCategories() {
+        const cachedCategories = sessionStorage.getItem('categoriesData');
+        if (cachedCategories) {
+            categoriesData = JSON.parse(cachedCategories);
+        } else {
+            console.log('Buscando categorias...');
+            const response = await fetchWithTimeout(`${url}/player_api.php?username=${login}&password=${password}&action=get_live_categories`);
+            if (!response) {
+                throw new Error('Erro ao buscar categorias');
+            }
+            categoriesData = JSON.parse(response);
+            sessionStorage.setItem('categoriesData', JSON.stringify(categoriesData));
+        }
     }
 
     // Função para carregar canais de uma categoria específica
-    async function loadChannels(url, login, password, categoryId) {
-        return await fetchWithTimeout(`${url}/player_api.php?username=${login}&password=${password}&action=get_live_streams&category_id=${categoryId}`);
+    async function loadChannels(categoryId) {
+        const cachedChannels = sessionStorage.getItem(`channelsData_${categoryId}`);
+        if (cachedChannels) {
+            channelsData[categoryId] = JSON.parse(cachedChannels);
+        } else {
+            console.log(`Buscando canais para a categoria ${categoryId}...`);
+            const response = await fetchWithTimeout(`${url}/player_api.php?username=${login}&password=${password}&action=get_live_streams&category_id=${categoryId}`);
+            if (!response) {
+                throw new Error('Erro ao buscar canais');
+            }
+            channelsData[categoryId] = JSON.parse(response);
+            sessionStorage.setItem(`channelsData_${categoryId}`, JSON.stringify(channelsData[categoryId]));
+        }
     }
 
-    // Função para renderizar categorias e canais
-    async function renderCategoriesAndChannels(url, login, password) {
+    // Inicialização da aplicação
+    async function init() {
         try {
-            loader.style.display = 'block'; // Mostra o loader enquanto carrega
+            await loadCategories();
 
-            const categories = await loadCategories(url, login, password);
+            categoryContainer.innerHTML = '';
 
-            categoryContainer.innerHTML = ''; // Limpa o container de categorias antes de adicionar novas
-
-            for (const category of categories) {
+            for (const category of categoriesData) {
                 const categoryDiv = document.createElement('div');
                 categoryDiv.className = 'category';
 
@@ -57,21 +87,18 @@ document.addEventListener("DOMContentLoaded", async function() {
                 const channelList = document.createElement('div');
                 channelList.className = 'channel-list';
 
-                const channels = await loadChannels(url, login, password, category.category_id);
-                appendChannels(channels, channelList);
+                await loadChannels(category.category_id);
+                appendChannels(channelsData[category.category_id], channelList);
 
                 categoryDiv.appendChild(channelList);
                 categoryContainer.appendChild(categoryDiv);
             }
 
-            // Mostra container de categorias após o carregamento
-            categoryContainer.style.display = 'block';
-
-            // Esconder o loader após o carregamento
             loader.style.display = 'none';
+            categoryContainer.style.display = 'block';
         } catch (error) {
-            console.error('Erro ao carregar categorias:', error.message);
-            categoryContainer.innerHTML = 'Erro ao carregar categorias. Tente novamente mais tarde.';
+            console.error('Erro ao carregar categorias:', error);
+            loader.textContent = 'Erro ao carregar categorias. Tente novamente mais tarde.';
         }
     }
 
@@ -96,7 +123,7 @@ document.addEventListener("DOMContentLoaded", async function() {
             container.appendChild(card);
 
             card.addEventListener('click', function() {
-                playChannel(baseURL, baseLogin, basePassword, this.dataset.streamId);
+                playChannel(url, login, password, this.dataset.streamId);
             });
         });
     }
@@ -108,17 +135,6 @@ document.addEventListener("DOMContentLoaded", async function() {
         window.location.href = `playerv.html?streamUrl=${encodeURIComponent(streamURL)}`;
     }
 
-    // Iniciar a aplicação ao carregar o DOM
-    const storedURL = sessionStorage.getItem('baseURL');
-    const storedLogin = sessionStorage.getItem('baseLogin');
-    const storedPassword = sessionStorage.getItem('basePassword');
-
-    if (storedURL && storedLogin && storedPassword) {
-        baseURL = storedURL;
-        baseLogin = storedLogin;
-        basePassword = storedPassword;
-        renderCategoriesAndChannels(baseURL, baseLogin, basePassword);
-    } else {
-        window.location.href = 'index.html'; // Redireciona se as credenciais não forem encontradas
-    }
+    // Iniciar a aplicação
+    await init();
 });
