@@ -5,71 +5,61 @@ document.addEventListener("DOMContentLoaded", async function() {
 
     if (!url || !login || !password) {
         console.error('Credenciais não encontradas.');
-        window.location.href = 'index.html'; // Redireciona para a página inicial se as credenciais não estiverem disponíveis
+        window.location.href = 'index.html';
         return;
     }
-
-    let categoriesData = [];
-    let channelsData = [];
 
     const categoryContainer = document.getElementById('category-container');
     const loader = document.getElementById('loader');
 
-    // Função para fazer requisições fetch com timeout
-    async function fetchWithTimeout(resource, options = {}) {
-        const { timeout = 10000 } = options;
-
+    async function fetchWithTimeout(resource, options = { timeout: 10000 }) {
+        const { timeout } = options;
         const controller = new AbortController();
         const id = setTimeout(() => controller.abort(), timeout);
-        const response = await fetch(resource, {
-            ...options,
-            signal: controller.signal
-        });
+        const response = await fetch(resource, { ...options, signal: controller.signal });
         clearTimeout(id);
 
-        if (!response.ok) {
-            throw new Error('Erro na requisição: ' + response.statusText);
-        }
+        if (!response.ok) throw new Error('Erro na requisição: ' + response.statusText);
         return response.json();
     }
 
-    // Função para carregar categorias
-    async function loadCategories() {
-        const cachedCategories = sessionStorage.getItem('categoriesData');
-        if (cachedCategories) {
-            categoriesData = JSON.parse(cachedCategories);
-        } else {
-            console.log('Buscando categorias...');
-            const data = await fetchWithTimeout(`${url}/player_api.php?username=${login}&password=${password}&action=get_live_categories`);
-            if (!data || !Array.isArray(data)) {
-                throw new Error('Erro ao buscar categorias');
-            }
-            categoriesData = data;
-            sessionStorage.setItem('categoriesData', JSON.stringify(categoriesData));
-        }
+    async function loadData(type) {
+        const cachedData = sessionStorage.getItem(`${type}Data`);
+        if (cachedData) return JSON.parse(cachedData);
+
+        console.log(`Buscando ${type}...`);
+        const data = await fetchWithTimeout(`${url}/player_api.php?username=${login}&password=${password}&action=get_${type}`);
+        if (!data || !Array.isArray(data)) throw new Error(`Erro ao buscar ${type}`);
+        
+        sessionStorage.setItem(`${type}Data`, JSON.stringify(data));
+        return data;
     }
 
-    // Função para carregar canais
-    async function loadChannels() {
-        const cachedChannels = sessionStorage.getItem('channelsData');
-        if (cachedChannels) {
-            channelsData = JSON.parse(cachedChannels);
-        } else {
-            console.log('Buscando canais...');
-            const data = await fetchWithTimeout(`${url}/player_api.php?username=${login}&password=${password}&action=get_live_streams`);
-            if (!data || !Array.isArray(data)) {
-                throw new Error('Erro ao buscar canais');
-            }
-            channelsData = data;
-            sessionStorage.setItem('channelsData', JSON.stringify(channelsData));
-        }
+    function appendChannels(channels, container) {
+        channels.forEach(channel => {
+            const card = document.createElement('div');
+            card.className = 'channel-item';
+            card.dataset.streamId = channel.stream_id;
+
+            card.innerHTML = `
+                <img src="${channel.stream_icon || ''}" alt="${channel.name}" class="channel-icon">
+                <p class="channel-name">${channel.name}</p>
+            `;
+
+            card.addEventListener('click', () => {
+                const streamURL = `${url}/live/${login}/${password}/${channel.stream_id}.m3u8`;
+                sessionStorage.setItem('lastPlayedStream', streamURL);
+                window.location.href = `playerv.html?streamUrl=${encodeURIComponent(streamURL)}`;
+            });
+
+            container.appendChild(card);
+        });
     }
 
-    // Inicialização da aplicação
     async function init() {
         try {
-            await loadCategories();
-            await loadChannels();
+            const categoriesData = await loadData('live_categories');
+            const channelsData = await loadData('live_streams');
 
             categoriesData.forEach(category => {
                 category.channels = channelsData.filter(channel => channel.category_id === category.category_id);
@@ -81,15 +71,11 @@ document.addEventListener("DOMContentLoaded", async function() {
                 const categoryDiv = document.createElement('div');
                 categoryDiv.className = 'category';
 
-                const categoryTitle = document.createElement('h2');
-                categoryTitle.textContent = category.category_name;
-                categoryDiv.appendChild(categoryTitle);
-
+                categoryDiv.innerHTML = `<h2>${category.category_name}</h2>`;
                 const channelList = document.createElement('div');
                 channelList.className = 'channel-list';
 
                 appendChannels(category.channels, channelList);
-
                 categoryDiv.appendChild(channelList);
                 categoryContainer.appendChild(categoryDiv);
             });
@@ -102,39 +88,5 @@ document.addEventListener("DOMContentLoaded", async function() {
         }
     }
 
-    // Função para adicionar canais ao DOM
-    function appendChannels(channels, container) {
-        channels.forEach(channel => {
-            const card = document.createElement('div');
-            card.className = 'channel-item';
-            card.dataset.streamId = channel.stream_id;
-
-            const channelIcon = document.createElement('img');
-            channelIcon.src = channel.stream_icon || '';
-            channelIcon.alt = channel.name;
-            channelIcon.className = 'channel-icon';
-
-            const channelName = document.createElement('p');
-            channelName.className = 'channel-name';
-            channelName.textContent = channel.name;
-
-            card.appendChild(channelIcon);
-            card.appendChild(channelName);
-            container.appendChild(card);
-
-            card.addEventListener('click', function() {
-                playChannel(url, login, password, this.dataset.streamId);
-            });
-        });
-    }
-
-    // Função para iniciar a reprodução de um canal
-    function playChannel(url, login, password, streamId) {
-        const streamURL = `${url}/live/${login}/${password}/${streamId}.m3u8`;
-        sessionStorage.setItem('lastPlayedStream', streamURL);
-        window.location.href = `playerv.html?streamUrl=${encodeURIComponent(streamURL)}`;
-    }
-
-    // Iniciar a aplicação
     await init();
 });
