@@ -10,7 +10,12 @@ document.addEventListener("DOMContentLoaded", async function() {
     }
 
     const categoryContainer = document.getElementById('category-container');
-    const loader = document.getElementById('loader');
+    const statusMessage = document.getElementById('status-message');
+
+    function showStatusMessage(message) {
+        statusMessage.textContent = message;
+        statusMessage.style.display = 'block';
+    }
 
     async function fetchWithTimeout(resource, options = { timeout: 10000 }) {
         const { timeout } = options;
@@ -27,7 +32,7 @@ document.addEventListener("DOMContentLoaded", async function() {
         const cachedData = sessionStorage.getItem(`${type}Data`);
         if (cachedData) return JSON.parse(cachedData);
 
-        console.log(`Buscando ${type}...`);
+        showStatusMessage(`Buscando ${type}...`);
         const data = await fetchWithTimeout(`${url}/player_api.php?username=${login}&password=${password}&action=get_${type}`);
         if (!data || !Array.isArray(data)) throw new Error(`Erro ao buscar ${type}`);
         
@@ -58,6 +63,7 @@ document.addEventListener("DOMContentLoaded", async function() {
 
     async function init() {
         try {
+            showStatusMessage('Carregando...');
             const categoriesData = await loadData('live_categories');
             const channelsData = await loadData('live_streams');
 
@@ -80,11 +86,11 @@ document.addEventListener("DOMContentLoaded", async function() {
                 categoryContainer.appendChild(categoryDiv);
             });
 
-            loader.style.display = 'none';
+            statusMessage.style.display = 'none';
             categoryContainer.style.display = 'block';
         } catch (error) {
             console.error('Erro ao carregar categorias e canais:', error);
-            loader.textContent = 'Erro ao carregar categorias e canais. Tente novamente mais tarde.';
+            statusMessage.textContent = 'Erro ao carregar categorias e canais. Tente novamente mais tarde.';
         }
     }
 
