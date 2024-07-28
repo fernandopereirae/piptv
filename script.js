@@ -53,7 +53,7 @@ function login() {
 
 document.addEventListener('DOMContentLoaded', function() {
     const path = window.location.pathname;
-    if (path.includes('login.html')) {
+    if (path.includes('index.html')) {
         document.getElementById('loginForm').addEventListener('submit', function(event) {
             event.preventDefault();
             login();
@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', function() {
         basePassword = localStorage.getItem('iptvPassword');
 
         if (!baseURL || !baseLogin || !basePassword) {
-            window.location.href = 'login.html';
+            window.location.href = 'index.html';
         } else {
             fetchChannels();
         }
@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function() {
             localStorage.removeItem('iptvURL');
             localStorage.removeItem('iptvLogin');
             localStorage.removeItem('iptvPassword');
-            window.location.href = 'login.html';
+            window.location.href = 'index.html';
         });
     } else if (path.includes('player.html')) {
         const selectedChannelId = localStorage.getItem('selectedChannelId');
