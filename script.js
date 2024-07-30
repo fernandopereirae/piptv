@@ -5,20 +5,30 @@ const channelsPerPage = 20;
 
 let currentPage = 1;
 
+function displayError(message) {
+    let errorElement = document.getElementById('errorDisplay');
+    if (!errorElement) {
+        errorElement = document.createElement('h1');
+        errorElement.id = 'errorDisplay';
+        document.body.insertBefore(errorElement, document.body.firstChild);
+    }
+    errorElement.textContent = message;
+}
+
 function fetchChannels(page = 1) {
-    console.log(`Iniciando o carregamento dos canais - Página ${page}...`);
+    displayError('Iniciando o carregamento dos canais - Página ' + page + '...');
 
     fetch(`${baseURL}/player_api.php?username=${baseLogin}&password=${basePassword}&action=get_live_streams`)
         .then(response => {
-            console.log('Status da resposta:', response.status);
-            console.log('Cabeçalhos da resposta:', response.headers);
+            displayError('Status da resposta: ' + response.status);
+            displayError('Cabeçalhos da resposta: ' + JSON.stringify([...response.headers]));
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
             return response.text(); // Mudamos para text() para verificar o formato dos dados
         })
         .then(text => {
-            console.log('Texto recebido da API:', text);
+            displayError('Texto recebido da API: ' + text);
             try {
                 // Tentamos analisar o texto como JSON
                 const data = JSON.parse(text);
@@ -46,20 +56,20 @@ function fetchChannels(page = 1) {
                             channelList.appendChild(listItem);
                         });
 
-                        console.log('Canais carregados com sucesso.');
+                        displayError('Canais carregados com sucesso.');
 
                         updatePagination(page, data.length);
                     } else {
-                        console.error('Formato de dados inesperado:', data);
+                        displayError('Formato de dados inesperado: ' + JSON.stringify(data));
                     }
                 } else {
-                    console.error('Elemento com ID "channelList" não encontrado.');
+                    displayError('Elemento com ID "channelList" não encontrado.');
                 }
             } catch (error) {
-                console.error('Erro ao analisar os dados:', error);
+                displayError('Erro ao analisar os dados: ' + error.message);
             }
         })
-        .catch(error => console.error('Erro ao buscar canais:', error));
+        .catch(error => displayError('Erro ao buscar canais: ' + error.message));
 }
 
 function updatePagination(page, totalChannels) {
@@ -89,7 +99,7 @@ function updatePagination(page, totalChannels) {
             paginationContainer.appendChild(nextButton);
         }
     } else {
-        console.error('Elemento com ID "paginationContainer" não encontrado.');
+        displayError('Elemento com ID "paginationContainer" não encontrado.');
     }
 }
 
@@ -101,15 +111,15 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (path.includes('player.html')) {
         const selectedChannelId = localStorage.getItem('selectedChannelId');
         if (!selectedChannelId) {
-            console.error('Nenhum canal selecionado. Redirecionando para canais...');
+            displayError('Nenhum canal selecionado. Redirecionando para canais...');
             window.location.href = 'index.html';
         } else {
             const player = document.getElementById('iptvPlayer');
             if (player) {
                 player.src = `${baseURL}/live/${baseLogin}/${basePassword}/${selectedChannelId}.m3u8`;
-                console.log('Reproduzindo canal ID:', selectedChannelId);
+                displayError('Reproduzindo canal ID: ' + selectedChannelId);
             } else {
-                console.error('Elemento com ID "iptvPlayer" não encontrado.');
+                displayError('Elemento com ID "iptvPlayer" não encontrado.');
             }
         }
 
@@ -119,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.location.href = 'index.html';
             });
         } else {
-            console.error('Elemento com ID "backToChannelsButton" não encontrado.');
+            displayError('Elemento com ID "backToChannelsButton" não encontrado.');
         }
     }
 });
