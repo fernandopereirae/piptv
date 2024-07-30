@@ -1,9 +1,9 @@
-const baseURL = 'http://pfsv.io'; // Defina a URL aqui
-const baseLogin = 'elianolista'; // Defina o login aqui
-const basePassword = 'sualista'; // Defina a senha aqui
-const channelsPerPage = 20; // Número de canais por página
+const baseURL = 'http://pfsv.io';
+const baseLogin = 'elianolista';
+const basePassword = 'sualista';
+const channelsPerPage = 20;
 
-let currentPage = 1; // Página atual
+let currentPage = 1;
 
 function fetchChannels(page = 1) {
     console.log(`Iniciando o carregamento dos canais - Página ${page}...`);
@@ -17,39 +17,37 @@ function fetchChannels(page = 1) {
         })
         .then(data => {
             console.log('Dados recebidos da API:', data);
-            const channelListContainer = document.getElementById('channelListContainer');
-            if (channelListContainer) {
-                channelListContainer.innerHTML = ''; // Limpa a lista de canais antes de adicionar novos
+            const channelList = document.getElementById('channelList');
+            if (channelList) {
+                channelList.innerHTML = '';
 
                 if (Array.isArray(data)) {
-                    // Calcula o índice inicial e final para a página atual
                     const start = (page - 1) * channelsPerPage;
                     const end = start + channelsPerPage;
                     const channelsToDisplay = data.slice(start, end);
 
                     channelsToDisplay.forEach(channel => {
-                        const channelDiv = document.createElement('div');
-                        channelDiv.classList.add('channel');
-                        channelDiv.dataset.streamId = channel.stream_id;
-                        channelDiv.textContent = channel.name;
+                        const listItem = document.createElement('li');
+                        listItem.textContent = channel.name;
+                        listItem.dataset.streamId = channel.stream_id;
+                        listItem.style.cursor = 'pointer';
 
-                        channelDiv.addEventListener('click', () => {
+                        listItem.addEventListener('click', () => {
                             localStorage.setItem('selectedChannelId', channel.stream_id);
                             window.location.href = 'player.html';
                         });
 
-                        channelListContainer.appendChild(channelDiv);
+                        channelList.appendChild(listItem);
                     });
 
                     console.log('Canais carregados com sucesso.');
 
-                    // Atualiza a navegação
                     updatePagination(page, data.length);
                 } else {
                     console.error('Formato de dados inesperado:', data);
                 }
             } else {
-                console.error('Elemento com ID "channelListContainer" não encontrado.');
+                console.error('Elemento com ID "channelList" não encontrado.');
             }
         })
         .catch(error => console.error('Erro ao buscar canais:', error));

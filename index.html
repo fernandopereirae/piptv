@@ -3,12 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Canais - Player IPTV</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Página de Canais</title>
+    <style>
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            padding: 10px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            cursor: pointer;
+        }
+        button {
+            margin: 5px;
+        }
+    </style>
 </head>
 <body>
-    <h2>Canais - Player IPTV</h2>
-    <div id="channelListContainer"></div>
+    <ul id="channelList">
+        <!-- Canais serão adicionados aqui -->
+    </ul>
+    <div id="paginationContainer"></div>
     <script src="script.js"></script>
 </body>
 </html>
