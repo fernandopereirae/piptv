@@ -5,34 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Página de Canais</title>
     <style>
-        table {
+        select {
             width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            border: 1px solid #ddd;
             padding: 8px;
-            text-align: left;
+            margin: 20px 0;
         }
-        th {
-            background-color: #f2f2f2;
-        }
-        button {
-            margin: 5px;
+        #errorDisplay {
+            color: red;
+            font-size: 1.2em;
+            text-align: center;
         }
     </style>
 </head>
 <body>
-    <table id="channelTable">
-        <thead>
-            <tr>
-                <th>Nome do Canal</th>
-            </tr>
-        </thead>
-        <tbody id="channelTableBody">
-            <!-- Canais serão adicionados aqui -->
-        </tbody>
-    </table>
+    <div id="errorDisplay"></div>
+    <select id="channelSelect">
+        <option value="">Selecione um canal...</option>
+    </select>
     <div id="paginationContainer"></div>
     <script src="script.js"></script>
 </body>
