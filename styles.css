@@ -8,36 +8,3 @@ body {
     background-color: #f0f0f0;
 }
 
-h2 {
-    margin-top: 20px;
-}
-
-.input-group, .input-video {
-    margin: 10px 0;
-}
-
-.channel-list {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-}
-
-.channel {
-    margin: 10px;
-    padding: 10px;
-    background-color: white;
-    border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    cursor: pointer;
-    text-align: center;
-}
-
-.channel p {
-    margin: 0;
-}
-
-#iptvPlayer {
-    width: 100%;
-    max-width: 600px;
-    margin-top: 20px;
-}
