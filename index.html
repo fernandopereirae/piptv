@@ -3,16 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Selecione um Canal</title>
+    <title>Player IPTV</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>Selecione um Canal</h1>
-    <div class="input-group">
-        <select id="channelList">
-            <option value="">Selecione um canal</option>
-        </select>
+	<h2>Player IPTV</h2>
+        	<form id="loginForm">
+                <div class="input-group">
+                    <label for="urlInput">URL:</label>
+                    <input type="text" id="urlInput" required>
+                </div>
+                <div class="input-group">
+                    <label for="loginInput">Login:</label>
+                    <input type="text" id="loginInput" required>
+                </div>
+                <div class="input-group">
+                    <label for="passwordInput">Senha:</label>
+                    <input type="password" id="passwordInput" required>
+                </div>
+                <button type="submit">Entrar</button>
+                <button id="logoutButton">Sair do Login</button>
+            </form>            
+            <div class="input-group">
+                <select id="channelList">
+                    <option value="">Selecione um canal</option>
+                </select>
+              <div class="input-group">
+            <button id="toggleLoginForm">Mostrar/Esconder Login</button>
+          </div>
+         </div>
+        <div class="input-video">
+            <video id="iptvPlayer" controls></video>
+        </div>
     </div>
     <script src="script.js"></script>
 </body>
 </html>
+
+ 
