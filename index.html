@@ -3,24 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Página de Canais</title>
-    <style>
-        select, button {
-            margin: 5px;
-        }
-        #errorDisplay {
-            color: red;
-            font-size: 1.2em;
-        }
-    </style>
+    <title>Selecione um Canal</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <select id="channelList" style="display:none;">
-        <option value="">Selecione um canal...</option>
-        <!-- Canais serão adicionados aqui -->
-    </select>
-    <div id="paginationContainer"></div>
-    <div id="errorDisplay"></div>
+    <h1>Selecione um Canal</h1>
+    <div class="input-group">
+        <select id="channelList">
+            <option value="">Selecione um canal</option>
+        </select>
+    </div>
     <script src="script.js"></script>
 </body>
 </html>

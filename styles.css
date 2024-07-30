@@ -3,8 +3,124 @@ body {
     margin: 0;
     padding: 0;
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    background-color: #f0f0f0;
+    justify-content: center;
+    align-items: flex-start; /* Alinhar ao topo */
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+    background: black;
 }
 
+h2 {
+    text-align: center;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    color: #fff;
+}
+
+.input-group {
+    margin-bottom: 1px;
+  
+}
+#loginForm {
+    position: relative;
+    z-index: 1;
+    width: 200px;/* Ajustar a largura do formulário conforme necessário */
+    padding: 20px;
+    background-color: rgba(0, 0, 0, 0.8);
+    border: 1px solid #ccc;
+    border-radius: 0;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    color: #fff;
+    top: 10px;
+    margin-right: 20px; /* Espaçamento à direita */
+    margin-left: : auto; /* Alinha o formulário à direita */
+    margin-bottom: auto; /* Alinha o formulário ao centro verticalmente */
+    margin-top: auto; /* Alinha o formulário ao centro verticalmente */
+}
+#loginForm label {
+    display: block;
+    margin-bottom: 5px;
+    color: #fff;
+  
+}
+
+#loginForm input {
+    width: 90%;
+    padding: 10px; /* Aumentar o padding para mais espaço */
+    border: 1px solid #ccc;
+    margin-bottom: 5px; /* Aumentar a margem inferior para mais espaço */
+    
+  
+}
+
+#loginForm button {
+    width: 100%;
+    right: 100px;
+    padding: 10px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 0;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-bottom: 5px; /* Aumentar a margem inferior para mais espaço */
+}
+
+#loginForm button:hover {
+    background-color: #0056b3;
+}
+
+.input-video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: 0;
+}
+
+.input-video video {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: translate(-50%, -50%);
+}
+
+#channelList {
+    width: 150px;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 0;
+    margin-top: 1px;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    position: absolute;
+    right: 10px;
+    top: 5px;
+    z-index: 1;
+}
+
+#toggleLoginForm {
+    width: 150px;
+    padding: 10px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 0;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    position: absolute;
+    right: 10px;
+    top: 70px;
+    z-index: 1;
+    margin-top: 1px;
+}
+
+#toggleLoginForm:hover {
+    background-color: #0056b3;
+}
