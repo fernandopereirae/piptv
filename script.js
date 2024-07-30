@@ -1,48 +1,88 @@
-let baseURL, baseLogin, basePassword;
+const baseURL = 'http://pfsv.io'; // Defina a URL aqui
+const baseLogin = 'elianolista'; // Defina o login aqui
+const basePassword = 'sualista'; // Defina a senha aqui
+const channelsPerPage = 20; // Número de canais por página
 
-function fetchChannels() {
+let currentPage = 1; // Página atual
+
+function fetchChannels(page = 1) {
+    console.log(`Iniciando o carregamento dos canais - Página ${page}...`);
+
     fetch(`${baseURL}/player_api.php?username=${baseLogin}&password=${basePassword}&action=get_live_streams`)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
         .then(data => {
             console.log('Dados recebidos da API:', data);
             const channelListContainer = document.getElementById('channelListContainer');
-            channelListContainer.innerHTML = ''; // Limpa a lista de canais antes de adicionar novos
+            if (channelListContainer) {
+                channelListContainer.innerHTML = ''; // Limpa a lista de canais antes de adicionar novos
 
-            if (Array.isArray(data)) {
-                data.forEach(channel => {
-                    const channelDiv = document.createElement('div');
-                    channelDiv.classList.add('channel');
-                    channelDiv.dataset.streamId = channel.stream_id;
-                    channelDiv.textContent = channel.name;
+                if (Array.isArray(data)) {
+                    // Calcula o índice inicial e final para a página atual
+                    const start = (page - 1) * channelsPerPage;
+                    const end = start + channelsPerPage;
+                    const channelsToDisplay = data.slice(start, end);
 
-                    channelDiv.addEventListener('click', () => {
-                        localStorage.setItem('selectedChannelId', channel.stream_id);
-                        window.location.href = 'player.html';
+                    channelsToDisplay.forEach(channel => {
+                        const channelDiv = document.createElement('div');
+                        channelDiv.classList.add('channel');
+                        channelDiv.dataset.streamId = channel.stream_id;
+                        channelDiv.textContent = channel.name;
+
+                        channelDiv.addEventListener('click', () => {
+                            localStorage.setItem('selectedChannelId', channel.stream_id);
+                            window.location.href = 'player.html';
+                        });
+
+                        channelListContainer.appendChild(channelDiv);
                     });
 
-                    channelListContainer.appendChild(channelDiv);
-                });
+                    console.log('Canais carregados com sucesso.');
+
+                    // Atualiza a navegação
+                    updatePagination(page, data.length);
+                } else {
+                    console.error('Formato de dados inesperado:', data);
+                }
             } else {
-                console.error('Formato de dados inesperado:', data);
+                console.error('Elemento com ID "channelListContainer" não encontrado.');
             }
         })
         .catch(error => console.error('Erro ao buscar canais:', error));
 }
 
-function login(event) {
-    event.preventDefault(); // Previne o comportamento padrão do formulário
+function updatePagination(page, totalChannels) {
+    const totalPages = Math.ceil(totalChannels / channelsPerPage);
+    const paginationContainer = document.getElementById('paginationContainer');
+    
+    if (paginationContainer) {
+        paginationContainer.innerHTML = '';
 
-    baseURL = document.getElementById('urlInput').value;
-    baseLogin = document.getElementById('loginInput').value;
-    basePassword = document.getElementById('passwordInput').value;
+        if (page > 1) {
+            const prevButton = document.createElement('button');
+            prevButton.textContent = 'Anterior';
+            prevButton.addEventListener('click', () => {
+                currentPage -= 1;
+                fetchChannels(currentPage);
+            });
+            paginationContainer.appendChild(prevButton);
+        }
 
-    if (baseURL && baseLogin && basePassword) {
-        localStorage.setItem('iptvURL', baseURL);
-        localStorage.setItem('iptvLogin', baseLogin);
-        localStorage.setItem('iptvPassword', basePassword);
-        window.location.href = 'channels.html'; // Redireciona para a página de canais
+        if (page < totalPages) {
+            const nextButton = document.createElement('button');
+            nextButton.textContent = 'Próximo';
+            nextButton.addEventListener('click', () => {
+                currentPage += 1;
+                fetchChannels(currentPage);
+            });
+            paginationContainer.appendChild(nextButton);
+        }
     } else {
-        alert('Por favor, preencha todos os campos.');
+        console.error('Elemento com ID "paginationContainer" não encontrado.');
     }
 }
 
@@ -50,39 +90,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const path = window.location.pathname;
 
     if (path.includes('index.html') || path === '/') {
-        document.getElementById('loginForm').addEventListener('submit', login);
-    } else if (path.includes('channels.html')) {
-        baseURL = localStorage.getItem('iptvURL');
-        baseLogin = localStorage.getItem('iptvLogin');
-        basePassword = localStorage.getItem('iptvPassword');
-
-        if (!baseURL || !baseLogin || !basePassword) {
-            window.location.href = 'index.html';
-        } else {
-            fetchChannels();
-        }
-
-        document.getElementById('logoutButton').addEventListener('click', () => {
-            localStorage.removeItem('iptvURL');
-            localStorage.removeItem('iptvLogin');
-            localStorage.removeItem('iptvPassword');
-            window.location.href = 'index.html';
-        });
+        fetchChannels(currentPage);
     } else if (path.includes('player.html')) {
         const selectedChannelId = localStorage.getItem('selectedChannelId');
-        baseURL = localStorage.getItem('iptvURL');
-        baseLogin = localStorage.getItem('iptvLogin');
-        basePassword = localStorage.getItem('iptvPassword');
-
-        if (!selectedChannelId || !baseURL || !baseLogin || !basePassword) {
-            window.location.href = 'channels.html';
+        if (!selectedChannelId) {
+            console.error('Nenhum canal selecionado. Redirecionando para canais...');
+            window.location.href = 'index.html';
         } else {
             const player = document.getElementById('iptvPlayer');
-            player.src = `${baseURL}/live/${baseLogin}/${basePassword}/${selectedChannelId}.m3u8`;
+            if (player) {
+                player.src = `${baseURL}/live/${baseLogin}/${basePassword}/${selectedChannelId}.m3u8`;
+                console.log('Reproduzindo canal ID:', selectedChannelId);
+            } else {
+                console.error('Elemento com ID "iptvPlayer" não encontrado.');
+            }
         }
 
-        document.getElementById('backToChannelsButton').addEventListener('click', () => {
-            window.location.href = 'channels.html';
-        });
+        const backToChannelsButton = document.getElementById('backToChannelsButton');
+        if (backToChannelsButton) {
+            backToChannelsButton.addEventListener('click', () => {
+                window.location.href = 'index.html';
+            });
+        } else {
+            console.error('Elemento com ID "backToChannelsButton" não encontrado.');
+        }
     }
 });
