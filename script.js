@@ -23,9 +23,9 @@ function fetchChannels(page = 1) {
         .then(data => {
             displayError('Dados recebidos da API.');
 
-            const channelSelect = document.getElementById('channelSelect');
-            if (channelSelect) {
-                channelSelect.innerHTML = '<option value="">Selecione um canal...</option>'; // Clear existing options
+            const channelList = document.getElementById('channelList');
+            if (channelList) {
+                channelList.innerHTML = '<option value="">Selecione um canal...</option>'; // Limpa e define a opção padrão
 
                 if (Array.isArray(data)) {
                     const start = (page - 1) * channelsPerPage;
@@ -37,14 +37,16 @@ function fetchChannels(page = 1) {
                         option.textContent = channel.name;
                         option.value = channel.stream_id;
 
-                        channelSelect.appendChild(option);
+                        channelList.appendChild(option);
                     });
+
+                    channelList.style.display = 'block'; // Torna a lista visível após adicionar os canais
 
                     displayError('Canais carregados com sucesso.');
 
                     updatePagination(page, data.length);
 
-                    channelSelect.addEventListener('change', (event) => {
+                    channelList.addEventListener('change', (event) => {
                         const selectedStreamId = event.target.value;
                         if (selectedStreamId) {
                             localStorage.setItem('selectedChannelId', selectedStreamId);
@@ -55,7 +57,7 @@ function fetchChannels(page = 1) {
                     displayError('Formato de dados inesperado: ' + JSON.stringify(data));
                 }
             } else {
-                displayError('Elemento com ID "channelSelect" não encontrado.');
+                displayError('Elemento com ID "channelList" não encontrado.');
             }
         })
         .catch(error => displayError('Erro ao buscar canais: ' + error.message));

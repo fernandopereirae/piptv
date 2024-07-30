@@ -5,24 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Página de Canais</title>
     <style>
-        select {
-            width: 100%;
-            padding: 8px;
-            margin: 20px 0;
+        select, button {
+            margin: 5px;
         }
         #errorDisplay {
             color: red;
             font-size: 1.2em;
-            text-align: center;
         }
     </style>
 </head>
 <body>
-    <div id="errorDisplay"></div>
-    <select id="channelSelect">
+    <select id="channelList" style="display:none;">
         <option value="">Selecione um canal...</option>
+        <!-- Canais serão adicionados aqui -->
     </select>
     <div id="paginationContainer"></div>
+    <div id="errorDisplay"></div>
     <script src="script.js"></script>
 </body>
 </html>
