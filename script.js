@@ -1,11 +1,9 @@
-let baseURL, baseLogin, basePassword;
+const baseURL = 'http://pfsv.io'; // Substitua 'YOUR_BASE_URL' pela URL desejada
+const baseLogin = 'elianolista'; // Substitua 'YOUR_LOGIN' pelo login desejado
+const basePassword = 'sualista'; // Substitua 'YOUR_PASSWORD' pela senha desejada
 
-function fetchChannels(url, login, password) {
-    baseURL = url;
-    baseLogin = login;
-    basePassword = password;
-
-    fetch(`${url}/player_api.php?username=${login}&password=${password}&action=get_live_streams`)
+function fetchChannels() {
+    fetch(`${baseURL}/player_api.php?username=${baseLogin}&password=${basePassword}&action=get_live_streams`)
     .then(response => response.json())
     .then(data => {
         console.log('Dados recebidos da API:', data);
@@ -31,18 +29,8 @@ function fetchChannels(url, login, password) {
     });
 }
 
-function login() {
-    const url = document.getElementById('urlInput').value;
-    const login = document.getElementById('loginInput').value;
-    const password = document.getElementById('passwordInput').value;
-
-    fetchChannels(url, login, password);
-}
-
-document.getElementById('loginForm').addEventListener('submit', function(event) {
-    event.preventDefault();    
-    // Impede o envio do formulário
-    login();
+document.addEventListener('DOMContentLoaded', function() {
+    fetchChannels(); // Chama a função ao carregar a página
 });
 
 document.getElementById('channelList').addEventListener('change', function() {
@@ -52,5 +40,5 @@ document.getElementById('channelList').addEventListener('change', function() {
     if (selectedChannelId) {
         const streamURL = `${baseURL}/live/${baseLogin}/${basePassword}/${selectedChannelId}.m3u8`;
         player.src = streamURL;
-
-        /
+    }
+});
