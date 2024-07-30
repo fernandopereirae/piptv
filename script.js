@@ -2,47 +2,37 @@ let baseURL, baseLogin, basePassword;
 
 function fetchChannels() {
     fetch(`${baseURL}/player_api.php?username=${baseLogin}&password=${basePassword}&action=get_live_streams`)
-    .then(response => response.json())
-    .then(data => {
-        console.log('Dados recebidos da API:', data);
-        const channelListContainer = document.getElementById('channelListContainer');
-        channelListContainer.innerHTML = ''; // Limpa a lista de canais antes de adicionar novos
+        .then(response => response.json())
+        .then(data => {
+            console.log('Dados recebidos da API:', data);
+            const channelListContainer = document.getElementById('channelListContainer');
+            channelListContainer.innerHTML = ''; // Limpa a lista de canais antes de adicionar novos
 
-        if (data && Array.isArray(data)) {
-            data.forEach(channel => {
-                const channelDiv = document.createElement('div');
-                channelDiv.classList.add('channel');
-                channelDiv.dataset.streamId = channel.stream_id;
+            if (Array.isArray(data)) {
+                data.forEach(channel => {
+                    const channelDiv = document.createElement('div');
+                    channelDiv.classList.add('channel');
+                    channelDiv.dataset.streamId = channel.stream_id;
+                    channelDiv.textContent = channel.name;
 
-                const channelName = document.createElement('p');
-                channelName.textContent = channel.name;
-                channelDiv.appendChild(channelName);
+                    channelDiv.addEventListener('click', () => {
+                        localStorage.setItem('selectedChannelId', channel.stream_id);
+                        window.location.href = 'player.html';
+                    });
 
-                channelListContainer.appendChild(channelDiv);
-
-                channelDiv.addEventListener('click', function() {
-                    const selectedChannelId = this.dataset.streamId;
-                    localStorage.setItem('selectedChannelId', selectedChannelId);
-                    window.location.href = 'player.html';
+                    channelListContainer.appendChild(channelDiv);
                 });
-            });
-        } else {
-            console.error('Formato de dados inesperado:', data);
-        }
-    })
-    .catch(error => {
-        console.error('Erro ao buscar canais:', error);
-    });
+            } else {
+                console.error('Formato de dados inesperado:', data);
+            }
+        })
+        .catch(error => console.error('Erro ao buscar canais:', error));
 }
 
 function login() {
-    const url = document.getElementById('urlInput').value;
-    const login = document.getElementById('loginInput').value;
-    const password = document.getElementById('passwordInput').value;
-
-    baseURL = url;
-    baseLogin = login;
-    basePassword = password;
+    baseURL = document.getElementById('urlInput').value;
+    baseLogin = document.getElementById('loginInput').value;
+    basePassword = document.getElementById('passwordInput').value;
 
     localStorage.setItem('iptvURL', baseURL);
     localStorage.setItem('iptvLogin', baseLogin);
@@ -51,10 +41,11 @@ function login() {
     window.location.href = 'channels.html';
 }
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', () => {
     const path = window.location.pathname;
+    
     if (path.includes('index.html')) {
-        document.getElementById('loginForm').addEventListener('submit', function(event) {
+        document.getElementById('loginForm').addEventListener('submit', (event) => {
             event.preventDefault();
             login();
         });
@@ -69,7 +60,7 @@ document.addEventListener('DOMContentLoaded', function() {
             fetchChannels();
         }
 
-        document.getElementById('logoutButton').addEventListener('click', function() {
+        document.getElementById('logoutButton').addEventListener('click', () => {
             localStorage.removeItem('iptvURL');
             localStorage.removeItem('iptvLogin');
             localStorage.removeItem('iptvPassword');
@@ -85,11 +76,10 @@ document.addEventListener('DOMContentLoaded', function() {
             window.location.href = 'channels.html';
         } else {
             const player = document.getElementById('iptvPlayer');
-            const streamURL = `${baseURL}/live/${baseLogin}/${basePassword}/${selectedChannelId}.m3u8`;
-            player.src = streamURL;
+            player.src = `${baseURL}/live/${baseLogin}/${basePassword}/${selectedChannelId}.m3u8`;
         }
 
-        document.getElementById('backToChannelsButton').addEventListener('click', function() {
+        document.getElementById('backToChannelsButton').addEventListener('click', () => {
             window.location.href = 'channels.html';
         });
     }
