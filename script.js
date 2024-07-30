@@ -10,44 +10,53 @@ function fetchChannels(page = 1) {
 
     fetch(`${baseURL}/player_api.php?username=${baseLogin}&password=${basePassword}&action=get_live_streams`)
         .then(response => {
+            console.log('Status da resposta:', response.status);
+            console.log('Cabeçalhos da resposta:', response.headers);
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
-            return response.json();
+            return response.text(); // Mudamos para text() para verificar o formato dos dados
         })
-        .then(data => {
-            console.log('Dados recebidos da API:', data);
-            const channelList = document.getElementById('channelList');
-            if (channelList) {
-                channelList.innerHTML = '';
+        .then(text => {
+            console.log('Texto recebido da API:', text);
+            try {
+                // Tentamos analisar o texto como JSON
+                const data = JSON.parse(text);
 
-                if (Array.isArray(data)) {
-                    const start = (page - 1) * channelsPerPage;
-                    const end = start + channelsPerPage;
-                    const channelsToDisplay = data.slice(start, end);
+                const channelList = document.getElementById('channelList');
+                if (channelList) {
+                    channelList.innerHTML = '';
 
-                    channelsToDisplay.forEach(channel => {
-                        const listItem = document.createElement('li');
-                        listItem.textContent = channel.name;
-                        listItem.dataset.streamId = channel.stream_id;
-                        listItem.style.cursor = 'pointer';
+                    if (Array.isArray(data)) {
+                        const start = (page - 1) * channelsPerPage;
+                        const end = start + channelsPerPage;
+                        const channelsToDisplay = data.slice(start, end);
 
-                        listItem.addEventListener('click', () => {
-                            localStorage.setItem('selectedChannelId', channel.stream_id);
-                            window.location.href = 'player.html';
+                        channelsToDisplay.forEach(channel => {
+                            const listItem = document.createElement('li');
+                            listItem.textContent = channel.name;
+                            listItem.dataset.streamId = channel.stream_id;
+                            listItem.style.cursor = 'pointer';
+
+                            listItem.addEventListener('click', () => {
+                                localStorage.setItem('selectedChannelId', channel.stream_id);
+                                window.location.href = 'player.html';
+                            });
+
+                            channelList.appendChild(listItem);
                         });
 
-                        channelList.appendChild(listItem);
-                    });
+                        console.log('Canais carregados com sucesso.');
 
-                    console.log('Canais carregados com sucesso.');
-
-                    updatePagination(page, data.length);
+                        updatePagination(page, data.length);
+                    } else {
+                        console.error('Formato de dados inesperado:', data);
+                    }
                 } else {
-                    console.error('Formato de dados inesperado:', data);
+                    console.error('Elemento com ID "channelList" não encontrado.');
                 }
-            } else {
-                console.error('Elemento com ID "channelList" não encontrado.');
+            } catch (error) {
+                console.error('Erro ao analisar os dados:', error);
             }
         })
         .catch(error => console.error('Erro ao buscar canais:', error));
