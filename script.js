@@ -36,17 +36,20 @@ function login(event) {
     baseLogin = document.getElementById('loginInput').value;
     basePassword = document.getElementById('passwordInput').value;
 
-    localStorage.setItem('iptvURL', baseURL);
-    localStorage.setItem('iptvLogin', baseLogin);
-    localStorage.setItem('iptvPassword', basePassword);
-
-    window.location.href = 'channels.html'; // Redireciona para a página de canais
+    if (baseURL && baseLogin && basePassword) {
+        localStorage.setItem('iptvURL', baseURL);
+        localStorage.setItem('iptvLogin', baseLogin);
+        localStorage.setItem('iptvPassword', basePassword);
+        window.location.href = 'channels.html'; // Redireciona para a página de canais
+    } else {
+        alert('Por favor, preencha todos os campos.');
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     const path = window.location.pathname;
-    
-    if (path.includes('index.html')) {
+
+    if (path.includes('index.html') || path === '/') {
         document.getElementById('loginForm').addEventListener('submit', login);
     } else if (path.includes('channels.html')) {
         baseURL = localStorage.getItem('iptvURL');
