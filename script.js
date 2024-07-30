@@ -29,7 +29,9 @@ function fetchChannels() {
         .catch(error => console.error('Erro ao buscar canais:', error));
 }
 
-function login() {
+function login(event) {
+    event.preventDefault(); // Previne o comportamento padrão do formulário
+
     baseURL = document.getElementById('urlInput').value;
     baseLogin = document.getElementById('loginInput').value;
     basePassword = document.getElementById('passwordInput').value;
@@ -38,17 +40,14 @@ function login() {
     localStorage.setItem('iptvLogin', baseLogin);
     localStorage.setItem('iptvPassword', basePassword);
 
-    window.location.href = 'channels.html';
+    window.location.href = 'channels.html'; // Redireciona para a página de canais
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     const path = window.location.pathname;
     
     if (path.includes('index.html')) {
-        document.getElementById('loginForm').addEventListener('submit', (event) => {
-            event.preventDefault();
-            login();
-        });
+        document.getElementById('loginForm').addEventListener('submit', login);
     } else if (path.includes('channels.html')) {
         baseURL = localStorage.getItem('iptvURL');
         baseLogin = localStorage.getItem('iptvLogin');
