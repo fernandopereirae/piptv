@@ -1,63 +1,134 @@
-const baseURL = 'http://pfsv.io'; // Substitua 'YOUR_BASE_URL' pela URL desejada
-const baseLogin = 'elianolista'; // Substitua 'YOUR_LOGIN' pelo login desejado
-const basePassword = 'sualista'; // Substitua 'YOUR_PASSWORD' pela senha desejada
-const BATCH_SIZE = 5; // Número de canais para carregar de cada vez
+document.addEventListener("DOMContentLoaded", async function() {
+    const url = sessionStorage.getItem('baseURL');
+    const login = sessionStorage.getItem('baseLogin');
+    const password = sessionStorage.getItem('basePassword');
 
-function fetchChannels() {
-    fetch(`${baseURL}/player_api.php?username=${baseLogin}&password=${basePassword}&action=get_live_streams`)
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`Erro HTTP: ${response.status}`);
-        }
+    if (!url || !login || !password) {
+        console.error('Credenciais não encontradas.');
+        window.location.href = 'index.html';
+        return;
+    }
+
+    const categoryContainer = document.getElementById('category-container');
+    const loadingIndicator = document.getElementById('loading-indicator');
+    const channelList = document.getElementById('channelList');
+
+    async function fetchWithTimeout(resource, options = { timeout: 10000 }) {
+        const { timeout } = options;
+        const controller = new AbortController();
+        const id = setTimeout(() => controller.abort(), timeout);
+        const response = await fetch(resource, { ...options, signal: controller.signal });
+        clearTimeout(id);
+
+        if (!response.ok) throw new Error('Erro na requisição: ' + response.statusText);
         return response.json();
-    })
-    .then(data => {
-        console.log('Dados recebidos da API:', data);
-        const channelButtons = document.getElementById('channelButtons');
-        const loadingMessage = document.getElementById('loadingMessage');
-        channelButtons.innerHTML = ''; // Limpa os botões antes de adicionar novos
+    }
 
-        if (Array.isArray(data)) {
-            let startIndex = 0;
+    async function loadData(type) {
+        const cachedData = sessionStorage.getItem(`${type}Data`);
+        if (cachedData) return JSON.parse(cachedData);
 
-            function loadBatch() {
-                const endIndex = Math.min(startIndex + BATCH_SIZE, data.length);
-                for (let i = startIndex; i < endIndex; i++) {
-                    const channel = data[i];
-                    const button = document.createElement('button');
-                    button.classList.add('channel-button');
-                    button.textContent = channel.name;
-                    button.dataset.streamId = channel.stream_id;
-                    button.addEventListener('click', () => {
-                        const streamURL = `${baseURL}/live/${baseLogin}/${basePassword}/${channel.stream_id}.m3u8`;
-                        window.open(`player.html?streamURL=${encodeURIComponent(streamURL)}`, '_blank');
-                    });
-                    channelButtons.appendChild(button);
-                }
-                startIndex = endIndex;
-                if (startIndex < data.length) {
-                    setTimeout(loadBatch, 10); // Aguarde 50ms antes de carregar o próximo lote
-                } else if (loadingMessage) {
-                    loadingMessage.style.display = 'none';
-                }
-            }
+        // Ajustamos a cor de fundo para verde
+        loadingIndicator.classList.add('loading-success');
+        loadingIndicator.classList.remove('loading-error');
 
-            loadBatch();
-        } else {
-            throw new Error('Formato de dados inesperado.');
+        try {
+            const data = await fetchWithTimeout(`${url}/player_api.php?username=${login}&password=${password}&action=get_${type}`);
+            if (!data || !Array.isArray(data)) throw new Error(`Erro ao buscar ${type}`);
+
+            sessionStorage.setItem(`${type}Data`, JSON.stringify(data));
+            return data;
+        } catch (error) {
+            console.error(`Erro ao buscar ${type}:`, error);
+            // Ajustamos a cor de fundo para vermelho
+            loadingIndicator.classList.remove('loading-success');
+            loadingIndicator.classList.add('loading-error');
+            throw error; // Reenvia o erro para o bloco catch no init()
         }
-    })
-    .catch(error => {
-        console.error('Erro ao buscar canais:', error);
-        const channelButtons = document.getElementById('channelButtons');
-        const loadingMessage = document.getElementById('loadingMessage');
-        channelButtons.innerHTML = `<p>Erro ao carregar canais: ${error.message}. Por favor, tente novamente mais tarde.</p>`;
-        if (loadingMessage) {
-            loadingMessage.style.display = 'none';
+    }
+
+    function appendChannels(channels, container) {
+        channels.forEach(channel => {
+            const card = document.createElement('div');
+            card.className = 'channel-item';
+            card.dataset.streamId = channel.stream_id;
+
+            card.innerHTML = `
+                <img src="${channel.stream_icon || ''}" alt="${channel.name}" class="channel-icon">
+                <p class="channel-name">${channel.name}</p>
+            `;
+
+            card.addEventListener('click', () => {
+                const streamURL = `${url}/live/${login}/${password}/${channel.stream_id}.m3u8`;
+                sessionStorage.setItem('lastPlayedStream', streamURL);
+                window.location.href = `playerv.html?streamUrl=${encodeURIComponent(streamURL)}`;
+            });
+
+            container.appendChild(card);
+        });
+    }
+
+    function populateChannelList(channels) {
+        channelList.innerHTML = ''; // Limpa a lista de canais antes de adicionar novos
+        channels.forEach(channel => {
+            const option = document.createElement('option');
+            option.value = channel.stream_id;
+            option.text = channel.name;
+            channelList.appendChild(option);
+        });
+
+        // Exibe a lista de canais após preencher
+        channelList.style.display = 'block';
+    }
+
+    async function init() {
+        try {
+            // Inicia o indicador visual como verde durante o carregamento
+            loadingIndicator.classList.add('loading-success');
+
+            const categoriesData = await loadData('live_categories');
+            const channelsData = await loadData('live_streams');
+
+            categoriesData.forEach(category => {
+                category.channels = channelsData.filter(channel => channel.category_id === category.category_id);
+            });
+
+            categoryContainer.innerHTML = '';
+
+            categoriesData.forEach(category => {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'category';
+
+                categoryDiv.innerHTML = `<h2>${category.category_name}</h2>`;
+                const channelListDiv = document.createElement('div');
+                channelListDiv.className = 'channel-list';
+
+                appendChannels(category.channels, channelListDiv);
+                categoryDiv.appendChild(channelListDiv);
+                categoryContainer.appendChild(categoryDiv);
+            });
+
+            populateChannelList(channelsData);
+
+            categoryContainer.style.display = 'block';
+        } catch (error) {
+            console.error('Erro ao carregar categorias e canais:', error);
+            // Tratamento de erro necessário, se desejar adicionar
+        } finally {
+            // Garante que o indicador visual seja removido após o carregamento
+            loadingIndicator.classList.remove('loading-success', 'loading-error');
+        }
+    }
+
+    channelList.addEventListener('change', function() {
+        const selectedChannelId = this.value;
+        const player = document.getElementById('iptvPlayer');
+
+        if (selectedChannelId) {
+            const streamURL = `${url}/live/${login}/${password}/${selectedChannelId}.m3u8`;
+            player.src = streamURL;
         }
     });
-}
 
-document.addEventListener('DOMContentLoaded', function() {
-    fetchChannels(); // Chama a função ao carregar a página
+    await init();
 });
