@@ -1,7 +1,10 @@
 const baseURL = 'http://pfsv.io'; // Substitua 'YOUR_BASE_URL' pela URL desejada
 const baseLogin = 'elianolista'; // Substitua 'YOUR_LOGIN' pelo login desejado
 const basePassword = 'sualista'; // Substitua 'YOUR_PASSWORD' pela senha desejada
-const BATCH_SIZE = 5; // Número de itens por lote
+const CATEGORIES_PER_PAGE = 1; // Número de categorias por página
+
+let currentPage = 0;
+let categoriesData = [];
 
 function fetchWithTimeout(url, timeout = 10000) {
     return new Promise((resolve, reject) => {
@@ -37,13 +40,16 @@ function fetchWithTimeout(url, timeout = 10000) {
     });
 }
 
-function displayBatch(categoriesData, startIndex, endIndex) {
+function displayBatch(startIndex, endIndex) {
     const categoryContainer = document.getElementById('category-container');
 
     if (!categoryContainer) {
         console.error('Elemento "category-container" não encontrado no DOM.');
         return;
     }
+
+    // Limpa o container antes de adicionar novas categorias
+    categoryContainer.innerHTML = '';
 
     categoriesData.slice(startIndex, endIndex).forEach(category => {
         const categoryDiv = document.createElement('div');
@@ -74,6 +80,16 @@ function displayBatch(categoriesData, startIndex, endIndex) {
         categoryDiv.appendChild(channelList);
         categoryContainer.appendChild(categoryDiv);
     });
+
+    updateNavigationButtons();
+}
+
+function updateNavigationButtons() {
+    const prevButton = document.getElementById('prev-button');
+    const nextButton = document.getElementById('next-button');
+
+    prevButton.disabled = currentPage === 0;
+    nextButton.disabled = (currentPage + 1) * CATEGORIES_PER_PAGE >= categoriesData.length;
 }
 
 function fetchChannels() {
@@ -83,37 +99,40 @@ function fetchChannels() {
     ])
     .then(results => {
         const channelsData = results[0];
-        const categoriesData = results[1];
+        const categoriesDataFetched = results[1];
 
-        if (!Array.isArray(channelsData) || !Array.isArray(categoriesData)) {
+        if (!Array.isArray(channelsData) || !Array.isArray(categoriesDataFetched)) {
             throw new Error('Formato de dados inesperado.');
         }
 
         // Associa canais a categorias
-        categoriesData.forEach(category => {
+        categoriesDataFetched.forEach(category => {
             category.channels = channelsData.filter(channel => channel.category_id === category.category_id);
         });
 
-        // Processa os dados em lotes
-        let startIndex = 0;
-        const totalItems = categoriesData.length;
+        categoriesData = categoriesDataFetched;
 
-        function processNextBatch() {
-            const endIndex = Math.min(startIndex + BATCH_SIZE, totalItems);
-            displayBatch(categoriesData, startIndex, endIndex);
-            startIndex = endIndex;
-
-            if (startIndex < totalItems) {
-                setTimeout(processNextBatch, 1000); // Aguarda 1 segundo antes de processar o próximo lote
-            }
-        }
-
-        processNextBatch();
+        // Exibe a primeira página
+        displayBatch(0, CATEGORIES_PER_PAGE);
     })
     .catch(error => {
         console.error('Erro ao buscar dados:', error);
     });
 }
+
+document.getElementById('prev-button').addEventListener('click', () => {
+    if (currentPage > 0) {
+        currentPage--;
+        displayBatch(currentPage * CATEGORIES_PER_PAGE, (currentPage + 1) * CATEGORIES_PER_PAGE);
+    }
+});
+
+document.getElementById('next-button').addEventListener('click', () => {
+    if ((currentPage + 1) * CATEGORIES_PER_PAGE < categoriesData.length) {
+        currentPage++;
+        displayBatch(currentPage * CATEGORIES_PER_PAGE, (currentPage + 1) * CATEGORIES_PER_PAGE);
+    }
+});
 
 // Chama a função ao carregar a página ou em outro ponto adequado
 document.addEventListener('DOMContentLoaded', fetchChannels);
