@@ -1,7 +1,7 @@
 const baseURL = 'http://pfsv.io'; // Substitua 'YOUR_BASE_URL' pela URL desejada
 const baseLogin = 'elianolista'; // Substitua 'YOUR_LOGIN' pelo login desejado
 const basePassword = 'sualista'; // Substitua 'YOUR_PASSWORD' pela senha desejada
-const BATCH_SIZE = 20; // Número de canais para carregar de cada vez
+const BATCH_SIZE = 5; // Número de canais para carregar de cada vez
 
 function fetchChannels() {
     fetch(`${baseURL}/player_api.php?username=${baseLogin}&password=${basePassword}&action=get_live_streams`)
@@ -36,7 +36,7 @@ function fetchChannels() {
                 }
                 startIndex = endIndex;
                 if (startIndex < data.length) {
-                    setTimeout(loadBatch, 50); // Aguarde 50ms antes de carregar o próximo lote
+                    setTimeout(loadBatch, 10); // Aguarde 50ms antes de carregar o próximo lote
                 } else if (loadingMessage) {
                     loadingMessage.style.display = 'none';
                 }
