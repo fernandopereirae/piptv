@@ -63,8 +63,9 @@ body {
 }
 
 .channel-icon {
-    max-width: 100%;
-    height: auto;
+    max-width: 50%;
+ 
+    
     border-radius: 5px;
 }
 
@@ -72,23 +73,4 @@ body {
     font-size: 1em;
     color: #333;
     margin-top: 10px;
-}
-
-/* Media queries for larger screens */
-@media (min-width: 768px) {
-    .channel-item {
-        width: calc(33.33% - 15px); /* Ajuste a largura para telas maiores */
-    }
-}
-
-@media (min-width: 1024px) {
-    .channel-item {
-        width: calc(25% - 15px); /* Ajuste a largura para telas ainda maiores */
-    }
-}
-
-@media (min-width: 1440px) {
-    .channel-item {
-        width: calc(20% - 15px); /* Ajuste a largura para telas muito grandes */
-    }
 }
