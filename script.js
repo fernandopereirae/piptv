@@ -1,6 +1,7 @@
 const baseURL = 'http://pfsv.io'; // Substitua 'YOUR_BASE_URL' pela URL desejada
 const baseLogin = 'elianolista'; // Substitua 'YOUR_LOGIN' pelo login desejado
 const basePassword = 'sualista'; // Substitua 'YOUR_PASSWORD' pela senha desejada
+const BATCH_SIZE = 5; // Número de itens por lote
 
 function fetchWithTimeout(url, timeout = 10000) {
     return new Promise((resolve, reject) => {
@@ -36,17 +37,46 @@ function fetchWithTimeout(url, timeout = 10000) {
     });
 }
 
-function fetchChannels() {
-    const loadingMessage = document.getElementById('loadingMessage');
+function displayBatch(categoriesData, startIndex, endIndex) {
     const categoryContainer = document.getElementById('category-container');
 
-    if (!loadingMessage || !categoryContainer) {
-        console.error('Elementos necessários não encontrados no DOM.');
+    if (!categoryContainer) {
+        console.error('Elemento "category-container" não encontrado no DOM.');
         return;
     }
 
-    loadingMessage.style.display = 'block'; // Exibe a mensagem de carregamento
+    categoriesData.slice(startIndex, endIndex).forEach(category => {
+        const categoryDiv = document.createElement('div');
+        categoryDiv.className = 'category';
+        categoryDiv.innerHTML = `<h2>${category.category_name}</h2>`;
+        
+        const channelList = document.createElement('div');
+        channelList.className = 'channel-list';
 
+        category.channels.forEach(channel => {
+            const card = document.createElement('div');
+            card.className = 'channel-item';
+            card.dataset.streamId = channel.stream_id;
+
+            card.innerHTML = `
+                <img src="${channel.stream_icon || ''}" alt="${channel.name}" class="channel-icon">
+                <p class="channel-name">${channel.name}</p>
+            `;
+
+            card.addEventListener('click', () => {
+                const streamURL = `${baseURL}/live/${baseLogin}/${basePassword}/${channel.stream_id}.m3u8`;
+                window.open(`player.html?streamURL=${encodeURIComponent(streamURL)}`, '_blank');
+            });
+
+            channelList.appendChild(card);
+        });
+
+        categoryDiv.appendChild(channelList);
+        categoryContainer.appendChild(categoryDiv);
+    });
+}
+
+function fetchChannels() {
     Promise.all([
         fetchWithTimeout(`${baseURL}/player_api.php?username=${baseLogin}&password=${basePassword}&action=get_live_streams`),
         fetchWithTimeout(`${baseURL}/player_api.php?username=${baseLogin}&password=${basePassword}&action=get_live_categories`)
@@ -64,48 +94,26 @@ function fetchChannels() {
             category.channels = channelsData.filter(channel => channel.category_id === category.category_id);
         });
 
-        // Limpa e exibe categorias e canais
-        categoryContainer.innerHTML = '';
-        categoriesData.forEach(category => {
-            const categoryDiv = document.createElement('div');
-            categoryDiv.className = 'category';
+        // Processa os dados em lotes
+        let startIndex = 0;
+        const totalItems = categoriesData.length;
 
-            categoryDiv.innerHTML = `<h2>${category.category_name}</h2>`;
-            const channelList = document.createElement('div');
-            channelList.className = 'channel-list';
+        function processNextBatch() {
+            const endIndex = Math.min(startIndex + BATCH_SIZE, totalItems);
+            displayBatch(categoriesData, startIndex, endIndex);
+            startIndex = endIndex;
 
-            // Adiciona canais à categoria
-            category.channels.forEach(channel => {
-                const card = document.createElement('div');
-                card.className = 'channel-item';
-                card.dataset.streamId = channel.stream_id;
+            if (startIndex < totalItems) {
+                setTimeout(processNextBatch, 1000); // Aguarda 1 segundo antes de processar o próximo lote
+            }
+        }
 
-                card.innerHTML = `
-                    <img src="${channel.stream_icon || ''}" alt="${channel.name}" class="channel-icon">
-                    <p class="channel-name">${channel.name}</p>
-                `;
-
-                card.addEventListener('click', () => {
-                    const streamURL = `${baseURL}/live/${baseLogin}/${basePassword}/${channel.stream_id}.m3u8`;
-                    window.open(`player.html?streamURL=${encodeURIComponent(streamURL)}`, '_blank');
-                });
-
-                channelList.appendChild(card);
-            });
-
-            categoryDiv.appendChild(channelList);
-            categoryContainer.appendChild(categoryDiv);
-        });
-
-        loadingMessage.style.display = 'none'; // Oculta a mensagem de carregamento
+        processNextBatch();
     })
     .catch(error => {
         console.error('Erro ao buscar dados:', error);
-        categoryContainer.innerHTML = `<p>Erro ao carregar categorias e canais: ${error.message}. Por favor, tente novamente mais tarde.</p>`;
-        loadingMessage.style.display = 'none'; // Oculta a mensagem de carregamento
     });
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    fetchChannels(); // Chama a função ao carregar a página
-});
+// Chama a função ao carregar a página ou em outro ponto adequado
+document.addEventListener('DOMContentLoaded', fetchChannels);
