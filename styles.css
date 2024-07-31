@@ -1,157 +1,65 @@
-/* Configuração geral do corpo */
 body {
-    height: 100%;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
     font-family: Arial, sans-serif;
-    background-color: #141414;
-    color: white;
-    overflow-x: hidden;
-}
-
-/* Container de login */
-.login-container {
-    text-align: center;
-    border: 1px solid #333;
+    margin: 0;
     padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.5);
-    background-color: #1f1f1f;
-    color: white;
-    margin-top: 20vh;
+    background-color: #f4f4f4;
 }
 
-.login-container input {
-    width: 80%;
-    padding: 10px;
-    margin: 10px 0;
-    border: 1px solid #555;
-    border-radius: 5px;
-    background-color: #333;
-    color: white;
+.input-group {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
 }
 
-.login-container button {
-    width: 86%;
-    padding: 10px;
-    background-color: #e50914;
+.channel-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 20px;
+}
+
+.channel-button {
+    padding: 10px 20px;
+    margin: 10px;
     border: none;
-    border-radius: 5px;
+    background-color: #007BFF;
     color: white;
-    font-size: 16px;
     cursor: pointer;
+    border-radius: 5px;
+    text-align: center;
+    font-size: 1em;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.login-container button:hover {
-    background-color: #f6121d;
+.channel-button:hover {
+    background-color: #0056b3;
 }
 
-/* Container de categorias */
-.category-container {
-    width: 100%;
-    padding: 20px;
+.loading-message {
+    text-align: center;
+    font-size: 1.2em;
+    color: #333;
     margin-top: 20px;
-    background-color: #141414;
 }
 
-/* Estilo dos títulos das categorias */
-.category h2 {
-    font-size: 24px;
-    margin-bottom: 10px;
-    padding: 10px;
-    border-left: 5px solid #e50914;
-    color: #fff;
+/* Media queries for larger screens */
+@media (min-width: 768px) {
+    .channel-button {
+        font-size: 1.1em;
+        padding: 15px 25px;
+    }
 }
 
-/* Estilo para a lista de canais */
-.channel-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px,4fr));
-    gap: 20px;
-    padding: 10px;
+@media (min-width: 1024px) {
+    .channel-button {
+        font-size: 1.2em;
+        padding: 20px 30px;
+    }
 }
 
-/* Estilo para cada item de canal */
-.channel-item {
-    padding: 15px;
-    background-color: #1f1f1f;
-    border: none;
-    border-radius: 10px;
-    text-align: center;
-    color: white;
-    cursor: pointer;
-    transition: transform 0.2s;
-}
-
-.channel-item:hover {
-    background-color: #333;
-    transform: scale(1.05);
-}
-
-/* Estilo para o nome do canal */
-.channel-name {
-    font-size: 14px;
-    margin-top: 10px;
-    color: #fff;
-}
-
-/* Estilo para o ícone do canal */
-.channel-icon {
-    width: 100px;
-    height: 100px;
-    object-fit: cover;
-    border-radius: 10px;
-}
-
-/* Estilo para o container do loader */
-#loader-container {
-    display: none; /* começa oculto */
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5); /* fundo semi-transparente */
-    z-index: 1000; /* garantir que está acima de todos os elementos */
-}
-
-/* Estilo para o loader */
-#loader {
-    border: 4px solid rgba(255, 255, 255, 0.3); /* cor do loader */
-    border-radius: 50%;
-    border-top: 4px solid #e50914; /* cor do loader */
-    width: 40px;
-    height: 40px;
-    animation: spin 1s linear infinite;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-#loading-indicator {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    display: block;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 1000; /* Ajuste conforme necessário */
-}
-
-.loading-success {
-    background-color: #4CAF50; /* Verde */
-}
-
-.loading-error {
-    background-color: #f44336; /* Vermelho */
+@media (min-width: 1440px) {
+    .channel-button {
+        font-size: 1.3em;
+        padding: 25px 35px;
+    }
 }
