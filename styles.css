@@ -5,61 +5,77 @@ body {
     background-color: #f4f4f4;
 }
 
-.input-group {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 20px;
-}
-
-.channel-buttons {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    padding: 20px;
-}
-
-.channel-button {
-    padding: 10px 20px;
-    margin: 10px;
-    border: none;
-    background-color: #007BFF;
-    color: white;
-    cursor: pointer;
-    border-radius: 5px;
-    text-align: center;
-    font-size: 1em;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.channel-button:hover {
-    background-color: #0056b3;
-}
-
 .loading-message {
     text-align: center;
     font-size: 1.2em;
     color: #333;
     margin-top: 20px;
+    display: none; /* Oculta a mensagem de carregamento por padrão */
+}
+
+.category-container {
+    margin-top: 20px;
+}
+
+.category {
+    margin-bottom: 40px;
+}
+
+.category h2 {
+    font-size: 1.5em;
+    margin-bottom: 10px;
+    color: #007BFF; /* Cor do título da categoria */
+}
+
+.channel-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px; /* Espaçamento entre os itens */
+}
+
+.channel-item {
+    background: #fff;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    padding: 10px;
+    text-align: center;
+    transition: transform 0.3s, box-shadow 0.3s;
+    width: calc(25% - 15px); /* Ajuste a largura dos itens com base no layout */
+}
+
+.channel-item:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.channel-icon {
+    max-width: 100%;
+    height: auto;
+    border-radius: 5px;
+}
+
+.channel-name {
+    font-size: 1em;
+    color: #333;
+    margin-top: 10px;
 }
 
 /* Media queries for larger screens */
 @media (min-width: 768px) {
-    .channel-button {
-        font-size: 1.1em;
-        padding: 15px 25px;
+    .channel-item {
+        width: calc(33.33% - 15px); /* Ajuste a largura para telas maiores */
     }
 }
 
 @media (min-width: 1024px) {
-    .channel-button {
-        font-size: 1.2em;
-        padding: 20px 30px;
+    .channel-item {
+        width: calc(25% - 15px); /* Ajuste a largura para telas ainda maiores */
     }
 }
 
 @media (min-width: 1440px) {
-    .channel-button {
-        font-size: 1.3em;
-        padding: 25px 35px;
+    .channel-item {
+        width: calc(20% - 15px); /* Ajuste a largura para telas muito grandes */
     }
 }
