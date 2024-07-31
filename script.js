@@ -2,16 +2,38 @@ const baseURL = 'http://pfsv.io'; // Substitua 'YOUR_BASE_URL' pela URL desejada
 const baseLogin = 'elianolista'; // Substitua 'YOUR_LOGIN' pelo login desejado
 const basePassword = 'sualista'; // Substitua 'YOUR_PASSWORD' pela senha desejada
 
-function fetchWithTimeout(resource, options = { timeout: 10000 }) {
-    const { timeout } = options;
-    const controller = new AbortController();
-    const id = setTimeout(() => controller.abort(), timeout);
-    return fetch(resource, { ...options, signal: controller.signal })
-        .then(response => {
-            clearTimeout(id);
-            if (!response.ok) throw new Error('Erro na requisição: ' + response.statusText);
-            return response.json();
-        });
+function fetchWithTimeout(url, timeout = 10000) {
+    return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        let timer;
+
+        xhr.open('GET', url, true);
+
+        xhr.onload = () => {
+            clearTimeout(timer);
+            if (xhr.status >= 200 && xhr.status < 300) {
+                try {
+                    resolve(JSON.parse(xhr.responseText));
+                } catch (e) {
+                    reject('Erro ao processar a resposta.');
+                }
+            } else {
+                reject('Erro na requisição: ' + xhr.statusText);
+            }
+        };
+
+        xhr.onerror = () => {
+            clearTimeout(timer);
+            reject('Erro na requisição.');
+        };
+
+        timer = setTimeout(() => {
+            xhr.abort();
+            reject('A requisição foi abortada por timeout.');
+        }, timeout);
+
+        xhr.send();
+    });
 }
 
 function fetchChannels() {
@@ -29,7 +51,10 @@ function fetchChannels() {
         fetchWithTimeout(`${baseURL}/player_api.php?username=${baseLogin}&password=${basePassword}&action=get_live_streams`),
         fetchWithTimeout(`${baseURL}/player_api.php?username=${baseLogin}&password=${basePassword}&action=get_live_categories`)
     ])
-    .then(([channelsData, categoriesData]) => {
+    .then(results => {
+        const channelsData = results[0];
+        const categoriesData = results[1];
+
         if (!Array.isArray(channelsData) || !Array.isArray(categoriesData)) {
             throw new Error('Formato de dados inesperado.');
         }

@@ -28,8 +28,15 @@ body {
 }
 
 .channel-list {
-    display: flex;
-    flex-wrap: wrap;
+    display: -webkit-box; /* Suporte para navegadores mais antigos */
+    display: -moz-box; /* Suporte para navegadores mais antigos */
+    display: -ms-flexbox; /* Suporte para navegadores mais antigos */
+    display: -webkit-flex; /* Suporte para navegadores mais antigos */
+    display: flex; /* Suporte para navegadores modernos */
+    -webkit-flex-wrap: wrap; /* Prefixo para navegadores mais antigos */
+    -moz-flex-wrap: wrap; /* Prefixo para navegadores mais antigos */
+    -ms-flex-wrap: wrap; /* Prefixo para navegadores mais antigos */
+    flex-wrap: wrap; /* Suporte para navegadores modernos */
     gap: 15px; /* Espaçamento entre os itens */
 }
 
@@ -40,13 +47,19 @@ body {
     cursor: pointer;
     padding: 10px;
     text-align: center;
-    transition: transform 0.3s, box-shadow 0.3s;
+    transition: all 0.3s ease; /* Compatível com navegadores antigos */
     width: calc(25% - 15px); /* Ajuste a largura dos itens com base no layout */
 }
 
 .channel-item:hover {
-    transform: scale(1.02);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    -webkit-transform: scale(1.02); /* Prefixo para navegadores mais antigos */
+    -moz-transform: scale(1.02); /* Prefixo para navegadores mais antigos */
+    -ms-transform: scale(1.02); /* Prefixo para navegadores mais antigos */
+    transform: scale(1.02); /* Suporte para navegadores modernos */
+    -webkit-box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Prefixo para navegadores mais antigos */
+    -moz-box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Prefixo para navegadores mais antigos */
+    -ms-box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Prefixo para navegadores mais antigos */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Suporte para navegadores modernos */
 }
 
 .channel-icon {
