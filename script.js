@@ -1,3 +1,4 @@
+
 document.addEventListener("DOMContentLoaded", async function() {
     const url = sessionStorage.getItem('baseURL');
     const login = sessionStorage.getItem('baseLogin');
@@ -11,7 +12,6 @@ document.addEventListener("DOMContentLoaded", async function() {
 
     const categoryContainer = document.getElementById('category-container');
     const loadingIndicator = document.getElementById('loading-indicator');
-    const channelList = document.getElementById('channelList');
 
     async function fetchWithTimeout(resource, options = { timeout: 10000 }) {
         const { timeout } = options;
@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", async function() {
         const cachedData = sessionStorage.getItem(`${type}Data`);
         if (cachedData) return JSON.parse(cachedData);
 
-        // Ajustamos a cor de fundo para verde
+        // Antes de iniciar a requisição, ajustamos a cor de fundo para verde
         loadingIndicator.classList.add('loading-success');
         loadingIndicator.classList.remove('loading-error');
 
@@ -40,7 +40,7 @@ document.addEventListener("DOMContentLoaded", async function() {
             return data;
         } catch (error) {
             console.error(`Erro ao buscar ${type}:`, error);
-            // Ajustamos a cor de fundo para vermelho
+            // Se ocorrer um erro, ajustamos a cor de fundo para vermelho
             loadingIndicator.classList.remove('loading-success');
             loadingIndicator.classList.add('loading-error');
             throw error; // Reenvia o erro para o bloco catch no init()
@@ -68,19 +68,6 @@ document.addEventListener("DOMContentLoaded", async function() {
         });
     }
 
-    function populateChannelList(channels) {
-        channelList.innerHTML = ''; // Limpa a lista de canais antes de adicionar novos
-        channels.forEach(channel => {
-            const option = document.createElement('option');
-            option.value = channel.stream_id;
-            option.text = channel.name;
-            channelList.appendChild(option);
-        });
-
-        // Exibe a lista de canais após preencher
-        channelList.style.display = 'block';
-    }
-
     async function init() {
         try {
             // Inicia o indicador visual como verde durante o carregamento
@@ -100,15 +87,13 @@ document.addEventListener("DOMContentLoaded", async function() {
                 categoryDiv.className = 'category';
 
                 categoryDiv.innerHTML = `<h2>${category.category_name}</h2>`;
-                const channelListDiv = document.createElement('div');
-                channelListDiv.className = 'channel-list';
+                const channelList = document.createElement('div');
+                channelList.className = 'channel-list';
 
-                appendChannels(category.channels, channelListDiv);
-                categoryDiv.appendChild(channelListDiv);
+                appendChannels(category.channels, channelList);
+                categoryDiv.appendChild(channelList);
                 categoryContainer.appendChild(categoryDiv);
             });
-
-            populateChannelList(channelsData);
 
             categoryContainer.style.display = 'block';
         } catch (error) {
@@ -119,16 +104,6 @@ document.addEventListener("DOMContentLoaded", async function() {
             loadingIndicator.classList.remove('loading-success', 'loading-error');
         }
     }
-
-    channelList.addEventListener('change', function() {
-        const selectedChannelId = this.value;
-        const player = document.getElementById('iptvPlayer');
-
-        if (selectedChannelId) {
-            const streamURL = `${url}/live/${login}/${password}/${selectedChannelId}.m3u8`;
-            player.src = streamURL;
-        }
-    });
 
     await init();
 });
