@@ -15,20 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
         player.autoplay = true;
 
         player.addEventListener('canplay', () => {
-            try {
-                if (player.requestFullscreen) {
-                    player.requestFullscreen();
-                } else if (player.mozRequestFullScreen) { // Firefox
-                    player.mozRequestFullScreen();
-                } else if (player.webkitRequestFullscreen) { // Chrome, Safari and Opera
-                    player.webkitRequestFullscreen();
-                } else if (player.msRequestFullscreen) { // IE/Edge
-                    player.msRequestFullscreen();
-                }
-                player.play().catch(handleError);
-            } catch (error) {
-                handleError(error);
-            }
+            player.play().catch(handleError);
         });
 
         player.addEventListener('error', handleError);

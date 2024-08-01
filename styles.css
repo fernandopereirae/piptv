@@ -2,13 +2,14 @@ body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 20px;
-    background-color: #f4f4f4;
+    background-color: #141414; /* Cor de fundo escura, semelhante ao Netflix */
+    color: #fff; /* Texto em cor branca para contraste */
 }
 
 .loading-message {
     text-align: center;
     font-size: 1.2em;
-    color: #333;
+    color: #fff; /* Mensagem de carregamento em branco */
     margin-top: 20px;
     display: none; /* Oculta a mensagem de carregamento por padrão */
 }
@@ -24,53 +25,65 @@ body {
 .category h2 {
     font-size: 1.5em;
     margin-bottom: 10px;
-    color: #007BFF; /* Cor do título da categoria */
+    color: #e50914; /* Cor vermelha do título da categoria, estilo Netflix */
 }
 
 .channel-list {
-    display: -webkit-box; /* Suporte para navegadores mais antigos */
-    display: -moz-box; /* Suporte para navegadores mais antigos */
-    display: -ms-flexbox; /* Suporte para navegadores mais antigos */
-    display: -webkit-flex; /* Suporte para navegadores mais antigos */
-    display: flex; /* Suporte para navegadores modernos */
-    -webkit-flex-wrap: wrap; /* Prefixo para navegadores mais antigos */
-    -moz-flex-wrap: wrap; /* Prefixo para navegadores mais antigos */
-    -ms-flex-wrap: wrap; /* Prefixo para navegadores mais antigos */
-    flex-wrap: wrap; /* Suporte para navegadores modernos */
+    display: flex;
+    flex-wrap: wrap;
     gap: 15px; /* Espaçamento entre os itens */
 }
 
 .channel-item {
-    background: #fff;
+    background: #333; /* Fundo escuro dos itens */
     border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     cursor: pointer;
     padding: 10px;
     text-align: center;
-    transition: all 0.3s ease; /* Compatível com navegadores antigos */
-    width: calc(25% - 15px); /* Ajuste a largura dos itens com base no layout */
+    transition: all 0.3s ease;
+    width: calc(25% - 15px); /* Ajusta a largura dos itens com base no layout */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .channel-item:hover {
-    -webkit-transform: scale(1.02); /* Prefixo para navegadores mais antigos */
-    -moz-transform: scale(1.02); /* Prefixo para navegadores mais antigos */
-    -ms-transform: scale(1.02); /* Prefixo para navegadores mais antigos */
-    transform: scale(1.02); /* Suporte para navegadores modernos */
-    -webkit-box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Prefixo para navegadores mais antigos */
-    -moz-box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Prefixo para navegadores mais antigos */
-    -ms-box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Prefixo para navegadores mais antigos */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Suporte para navegadores modernos */
+    transform: scale(1.02);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
 }
 
 .channel-icon {
-    max-width: 50%;
- 
-    
-    border-radius: 5px;
+    width: 100px; /* Ajusta conforme necessário */
+    height: 100px; /* Ajusta conforme necessário */
+    object-fit: cover;
+    margin-bottom: 10px; /* Adiciona espaço abaixo da imagem */
 }
 
 .channel-name {
     font-size: 1em;
-    color: #333;
-    margin-top: 10px;
+    color: #fff; /* Nome do canal em branco */
+}
+
+#prev-button,
+#next-button {
+    background-color: #e50914; /* Botões com a mesma cor vermelha do título */
+    border: none;
+    border-radius: 5px;
+    color: #fff;
+    cursor: pointer;
+    font-size: 1em;
+    padding: 10px 20px;
+    transition: background-color 0.3s ease;
+}
+
+#prev-button:hover,
+#next-button:hover {
+    background-color: #b81d24; /* Cor um pouco mais escura para o hover */
+}
+
+#prev-button:disabled,
+#next-button:disabled {
+    background-color: #666; /* Cor para botões desativados */
+    cursor: not-allowed;
 }
