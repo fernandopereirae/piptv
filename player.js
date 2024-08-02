@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     const urlParams = new URLSearchParams(window.location.search);
     const streamURL = urlParams.get('streamURL');
+    const currentPage = urlParams.get('page');
     const playerElement = document.getElementById('iptvPlayer');
     const errorMessage = document.getElementById('errorMessage');
 
@@ -19,14 +20,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         playerElement.addEventListener('error', handleError);
+    } else {
+        window.location.href = `index.html${currentPage ? '?page=' + currentPage : ''}`;
     }
 
-    // Armazena o estado atual da página no histórico
-    window.history.replaceState({ page: window.location.href }, '');
-
     window.addEventListener('popstate', function(event) {
-        if (event.state && event.state.page) {
-            window.location.href = event.state.page;
+        if (currentPage) {
+            window.location.href = `index.html?page=${currentPage}`;
+        } else {
+            window.location.href = 'index.html';
         }
     });
 });

@@ -71,6 +71,7 @@ function displayBatch(startIndex, endIndex) {
 
             card.addEventListener('click', () => {
                 const streamURL = `${baseURL}/live/${baseLogin}/${basePassword}/${channel.stream_id}.m3u8`;
+                // Manter a página atual e passar a URL do stream
                 window.location.href = `player.html?streamURL=${encodeURIComponent(streamURL)}&page=${currentPage}`;
             });
 
@@ -88,8 +89,12 @@ function updateNavigationButtons() {
     const prevButton = document.getElementById('prev-button');
     const nextButton = document.getElementById('next-button');
 
-    prevButton.disabled = currentPage === 0;
-    nextButton.disabled = (currentPage + 1) * CATEGORIES_PER_PAGE >= categoriesData.length;
+    if (prevButton) {
+        prevButton.disabled = currentPage === 0;
+    }
+    if (nextButton) {
+        nextButton.disabled = (currentPage + 1) * CATEGORIES_PER_PAGE >= categoriesData.length;
+    }
 }
 
 function fetchChannels() {
@@ -120,14 +125,14 @@ function fetchChannels() {
     });
 }
 
-document.getElementById('prev-button').addEventListener('click', () => {
+document.getElementById('prev-button')?.addEventListener('click', () => {
     if (currentPage > 0) {
         currentPage--;
         displayBatch(currentPage * CATEGORIES_PER_PAGE, (currentPage + 1) * CATEGORIES_PER_PAGE);
     }
 });
 
-document.getElementById('next-button').addEventListener('click', () => {
+document.getElementById('next-button')?.addEventListener('click', () => {
     if ((currentPage + 1) * CATEGORIES_PER_PAGE < categoriesData.length) {
         currentPage++;
         displayBatch(currentPage * CATEGORIES_PER_PAGE, (currentPage + 1) * CATEGORIES_PER_PAGE);
