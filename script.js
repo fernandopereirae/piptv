@@ -71,8 +71,7 @@ function displayBatch(startIndex, endIndex) {
 
             card.addEventListener('click', () => {
                 const streamURL = `${baseURL}/live/${baseLogin}/${basePassword}/${channel.stream_id}.m3u8`;
-                // Adiciona a página atual à URL do player
-                window.open(`player.html?streamURL=${encodeURIComponent(streamURL)}&page=${currentPage}`, '_blank');
+                window.location.href = `player.html?streamURL=${encodeURIComponent(streamURL)}&page=${currentPage}`;
             });
 
             channelList.appendChild(card);
@@ -113,14 +112,8 @@ function fetchChannels() {
 
         categoriesData = categoriesDataFetched;
 
-        // Restaura a página salva na URL ou exibe a primeira página
-        const urlParams = new URLSearchParams(window.location.search);
-        const page = urlParams.get('page');
-        if (page) {
-            currentPage = parseInt(page, 10);
-        }
-
-        displayBatch(currentPage * CATEGORIES_PER_PAGE, (currentPage + 1) * CATEGORIES_PER_PAGE);
+        // Exibe a primeira página
+        displayBatch(0, CATEGORIES_PER_PAGE);
     })
     .catch(error => {
         console.error('Erro ao buscar dados:', error);
@@ -131,7 +124,6 @@ document.getElementById('prev-button').addEventListener('click', () => {
     if (currentPage > 0) {
         currentPage--;
         displayBatch(currentPage * CATEGORIES_PER_PAGE, (currentPage + 1) * CATEGORIES_PER_PAGE);
-        history.pushState(null, '', `?page=${currentPage}`);
     }
 });
 
@@ -139,7 +131,6 @@ document.getElementById('next-button').addEventListener('click', () => {
     if ((currentPage + 1) * CATEGORIES_PER_PAGE < categoriesData.length) {
         currentPage++;
         displayBatch(currentPage * CATEGORIES_PER_PAGE, (currentPage + 1) * CATEGORIES_PER_PAGE);
-        history.pushState(null, '', `?page=${currentPage}`);
     }
 });
 
