@@ -1,8 +1,9 @@
 document.addEventListener('DOMContentLoaded', function() {
     const urlParams = new URLSearchParams(window.location.search);
     const streamURL = urlParams.get('streamURL');
-    const player = document.getElementById('iptvPlayer');
+    const playerElement = document.getElementById('iptvPlayer');
     const errorMessage = document.getElementById('errorMessage');
+    const player = videojs(playerElement);
 
     function handleError(error) {
         console.error('Erro ao reproduzir o vídeo:', error);
@@ -11,15 +12,21 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (streamURL) {
-        player.src = streamURL;
-        player.autoplay = true;
+        player.src({ src: streamURL, type: 'application/x-mpegURL' });
+        player.autoplay(true);
 
-        player.addEventListener('canplay', () => {
+        player.on('canplay', () => {
             player.play().catch(handleError);
         });
 
-        player.addEventListener('error', handleError);
+        player.on('error', handleError);
     } else {
-        handleError('Stream URL não encontrada.');
+        window.location.href = 'index.html';
     }
+
+    window.addEventListener('popstate', function(event) {
+        // Salva a URL da página atual antes de redirecionar
+        localStorage.setItem('previousPage', window.location.href);
+        window.location.href = 'index.html';
+    });
 });

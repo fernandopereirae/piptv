@@ -1,54 +1,65 @@
+const baseURL = 'http://pfsv.io'; // Substitua 'YOUR_BASE_URL' pela URL desejada
+const baseLogin = 'elianolista'; // Substitua 'YOUR_LOGIN' pelo login desejado
+const basePassword = 'sualista'; // Substitua 'YOUR_PASSWORD' pela senha desejada
+const CATEGORIES_PER_PAGE = 1; // Número de categorias por página
 
-document.addEventListener("DOMContentLoaded", async function() {
-    const url = sessionStorage.getItem('baseURL');
-    const login = sessionStorage.getItem('baseLogin');
-    const password = sessionStorage.getItem('basePassword');
+let currentPage = 0;
+let categoriesData = [];
 
-    if (!url || !login || !password) {
-        console.error('Credenciais não encontradas.');
-        window.location.href = 'index.html';
+function fetchWithTimeout(url, timeout = 10000) {
+    return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        let timer;
+
+        xhr.open('GET', url, true);
+
+        xhr.onload = () => {
+            clearTimeout(timer);
+            if (xhr.status >= 200 && xhr.status < 300) {
+                try {
+                    resolve(JSON.parse(xhr.responseText));
+                } catch (e) {
+                    reject('Erro ao processar a resposta.');
+                }
+            } else {
+                reject('Erro na requisição: ' + xhr.statusText);
+            }
+        };
+
+        xhr.onerror = () => {
+            clearTimeout(timer);
+            reject('Erro na requisição.');
+        };
+
+        timer = setTimeout(() => {
+            xhr.abort();
+            reject('A requisição foi abortada por timeout.');
+        }, timeout);
+
+        xhr.send();
+    });
+}
+
+function displayBatch(startIndex, endIndex) {
+    const categoryContainer = document.getElementById('category-container');
+
+    if (!categoryContainer) {
+        console.error('Elemento "category-container" não encontrado no DOM.');
         return;
     }
 
-    const categoryContainer = document.getElementById('category-container');
-    const loadingIndicator = document.getElementById('loading-indicator');
+    // Limpa o container antes de adicionar novas categorias
+    categoryContainer.innerHTML = '';
 
-    async function fetchWithTimeout(resource, options = { timeout: 10000 }) {
-        const { timeout } = options;
-        const controller = new AbortController();
-        const id = setTimeout(() => controller.abort(), timeout);
-        const response = await fetch(resource, { ...options, signal: controller.signal });
-        clearTimeout(id);
+    categoriesData.slice(startIndex, endIndex).forEach(category => {
+        const categoryDiv = document.createElement('div');
+        categoryDiv.className = 'category';
+        categoryDiv.innerHTML = `<h2>${category.category_name}</h2>`;
+        
+        const channelList = document.createElement('div');
+        channelList.className = 'channel-list';
 
-        if (!response.ok) throw new Error('Erro na requisição: ' + response.statusText);
-        return response.json();
-    }
-
-    async function loadData(type) {
-        const cachedData = sessionStorage.getItem(`${type}Data`);
-        if (cachedData) return JSON.parse(cachedData);
-
-        // Antes de iniciar a requisição, ajustamos a cor de fundo para verde
-        loadingIndicator.classList.add('loading-success');
-        loadingIndicator.classList.remove('loading-error');
-
-        try {
-            const data = await fetchWithTimeout(`${url}/player_api.php?username=${login}&password=${password}&action=get_${type}`);
-            if (!data || !Array.isArray(data)) throw new Error(`Erro ao buscar ${type}`);
-
-            sessionStorage.setItem(`${type}Data`, JSON.stringify(data));
-            return data;
-        } catch (error) {
-            console.error(`Erro ao buscar ${type}:`, error);
-            // Se ocorrer um erro, ajustamos a cor de fundo para vermelho
-            loadingIndicator.classList.remove('loading-success');
-            loadingIndicator.classList.add('loading-error');
-            throw error; // Reenvia o erro para o bloco catch no init()
-        }
-    }
-
-    function appendChannels(channels, container) {
-        channels.forEach(channel => {
+        category.channels.forEach(channel => {
             const card = document.createElement('div');
             card.className = 'channel-item';
             card.dataset.streamId = channel.stream_id;
@@ -59,51 +70,82 @@ document.addEventListener("DOMContentLoaded", async function() {
             `;
 
             card.addEventListener('click', () => {
-                const streamURL = `${url}/live/${login}/${password}/${channel.stream_id}.m3u8`;
-                sessionStorage.setItem('lastPlayedStream', streamURL);
-                window.location.href = `playerv.html?streamUrl=${encodeURIComponent(streamURL)}`;
+                const streamURL = `${baseURL}/live/${baseLogin}/${basePassword}/${channel.stream_id}.m3u8`;
+                // Salva a página atual no localStorage antes de abrir o player
+                localStorage.setItem('previousPage', window.location.href);
+                window.open(`player.html?streamURL=${encodeURIComponent(streamURL)}`, '_blank');
             });
 
-            container.appendChild(card);
+            channelList.appendChild(card);
         });
-    }
 
-    async function init() {
-        try {
-            // Inicia o indicador visual como verde durante o carregamento
-            loadingIndicator.classList.add('loading-success');
+        categoryDiv.appendChild(channelList);
+        categoryContainer.appendChild(categoryDiv);
+    });
 
-            const categoriesData = await loadData('live_categories');
-            const channelsData = await loadData('live_streams');
+    updateNavigationButtons();
+}
 
-            categoriesData.forEach(category => {
-                category.channels = channelsData.filter(channel => channel.category_id === category.category_id);
-            });
+function updateNavigationButtons() {
+    const prevButton = document.getElementById('prev-button');
+    const nextButton = document.getElementById('next-button');
 
-            categoryContainer.innerHTML = '';
+    prevButton.disabled = currentPage === 0;
+    nextButton.disabled = (currentPage + 1) * CATEGORIES_PER_PAGE >= categoriesData.length;
+}
 
-            categoriesData.forEach(category => {
-                const categoryDiv = document.createElement('div');
-                categoryDiv.className = 'category';
+function fetchChannels() {
+    Promise.all([
+        fetchWithTimeout(`${baseURL}/player_api.php?username=${baseLogin}&password=${basePassword}&action=get_live_streams`),
+        fetchWithTimeout(`${baseURL}/player_api.php?username=${baseLogin}&password=${basePassword}&action=get_live_categories`)
+    ])
+    .then(results => {
+        const channelsData = results[0];
+        const categoriesDataFetched = results[1];
 
-                categoryDiv.innerHTML = `<h2>${category.category_name}</h2>`;
-                const channelList = document.createElement('div');
-                channelList.className = 'channel-list';
-
-                appendChannels(category.channels, channelList);
-                categoryDiv.appendChild(channelList);
-                categoryContainer.appendChild(categoryDiv);
-            });
-
-            categoryContainer.style.display = 'block';
-        } catch (error) {
-            console.error('Erro ao carregar categorias e canais:', error);
-            // Tratamento de erro necessário, se desejar adicionar
-        } finally {
-            // Garante que o indicador visual seja removido após o carregamento
-            loadingIndicator.classList.remove('loading-success', 'loading-error');
+        if (!Array.isArray(channelsData) || !Array.isArray(categoriesDataFetched)) {
+            throw new Error('Formato de dados inesperado.');
         }
-    }
 
-    await init();
+        // Associa canais a categorias
+        categoriesDataFetched.forEach(category => {
+            category.channels = channelsData.filter(channel => channel.category_id === category.category_id);
+        });
+
+        categoriesData = categoriesDataFetched;
+
+        // Restaura a página salva no localStorage ou exibe a primeira página
+        const previousPage = localStorage.getItem('previousPage');
+        if (previousPage) {
+            const url = new URL(previousPage);
+            const page = url.searchParams.get('page');
+            if (page) {
+                currentPage = parseInt(page, 10);
+            }
+        }
+
+        displayBatch(currentPage * CATEGORIES_PER_PAGE, (currentPage + 1) * CATEGORIES_PER_PAGE);
+    })
+    .catch(error => {
+        console.error('Erro ao buscar dados:', error);
+    });
+}
+
+document.getElementById('prev-button').addEventListener('click', () => {
+    if (currentPage > 0) {
+        currentPage--;
+        displayBatch(currentPage * CATEGORIES_PER_PAGE, (currentPage + 1) * CATEGORIES_PER_PAGE);
+        localStorage.setItem('previousPage', `${window.location.pathname}?page=${currentPage}`);
+    }
 });
+
+document.getElementById('next-button').addEventListener('click', () => {
+    if ((currentPage + 1) * CATEGORIES_PER_PAGE < categoriesData.length) {
+        currentPage++;
+        displayBatch(currentPage * CATEGORIES_PER_PAGE, (currentPage + 1) * CATEGORIES_PER_PAGE);
+        localStorage.setItem('previousPage', `${window.location.pathname}?page=${currentPage}`);
+    }
+});
+
+// Chama a função ao carregar a página ou em outro ponto adequado
+document.addEventListener('DOMContentLoaded', fetchChannels);
