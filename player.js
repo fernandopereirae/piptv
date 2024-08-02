@@ -15,27 +15,40 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (playerElement) {
         if (streamURL) {
-            // Verifique se o URL é válido
             try {
                 const decodedStreamURL = decodeURIComponent(streamURL);
-                
-                // Configura o elemento de vídeo
-                playerElement.src = decodedStreamURL;
-                playerElement.autoplay = true;
-                playerElement.controls = true; // Adiciona controles para facilitar a depuração
 
-                // Adiciona eventos para manejar reprodução e erros
-                playerElement.addEventListener('canplay', () => {
-                    playerElement.play().catch(handleError);
-                });
+                if (Hls.isSupported()) {
+                    const hls = new Hls();
+                    hls.loadSource(decodedStreamURL);
+                    hls.attachMedia(playerElement);
+                    hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                        playerElement.play().catch(handleError);
+                    });
+                    hls.on(Hls.Events.ERROR, (event, data) => {
+                        if (data.fatal === Hls.ErrorTypes.NETWORK_ERROR) {
+                            handleError('Erro de rede.');
+                        } else if (data.fatal === Hls.ErrorTypes.MEDIA_ERROR) {
+                            handleError('Erro de mídia.');
+                        } else if (data.fatal === Hls.ErrorTypes.OTHER_ERROR) {
+                            handleError('Outro erro.');
+                        }
+                    });
+                } else {
+                    playerElement.src = decodedStreamURL;
+                    playerElement.autoplay = true;
+                    playerElement.controls = true;
 
-                playerElement.addEventListener('error', handleError);
+                    playerElement.addEventListener('canplay', () => {
+                        playerElement.play().catch(handleError);
+                    });
 
+                    playerElement.addEventListener('error', handleError);
+                }
             } catch (e) {
                 handleError(e);
             }
         } else {
-            // Garante que `currentPage` seja tratado corretamente
             const redirectUrl = `index.html${currentPage ? '?page=' + encodeURIComponent(currentPage) : ''}`;
             window.location.href = redirectUrl;
         }
@@ -47,7 +60,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Gerencia o histórico do navegador
     window.addEventListener('popstate', function() {
         const redirectUrl = `index.html${currentPage ? '?page=' + encodeURIComponent(currentPage) : ''}`;
         window.location.href = redirectUrl;
