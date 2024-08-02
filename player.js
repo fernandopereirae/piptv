@@ -11,17 +11,22 @@ document.addEventListener('DOMContentLoaded', function() {
         errorMessage.style.display = 'block';
     }
 
-    if (streamURL) {
-        playerElement.src = streamURL;
-        playerElement.autoplay = true;
+    if (playerElement) {
+        if (streamURL) {
+            playerElement.src = streamURL;
+            playerElement.autoplay = true;
 
-        playerElement.addEventListener('canplay', () => {
-            playerElement.play().catch(handleError);
-        });
+            // Verifica se o navegador permite autoplay
+            playerElement.addEventListener('canplay', () => {
+                playerElement.play().catch(handleError);
+            });
 
-        playerElement.addEventListener('error', handleError);
+            playerElement.addEventListener('error', handleError);
+        } else {
+            window.location.href = `index.html${currentPage ? '?page=' + currentPage : ''}`;
+        }
     } else {
-        window.location.href = `index.html${currentPage ? '?page=' + currentPage : ''}`;
+        console.error('Elemento de player não encontrado.');
     }
 
     window.addEventListener('popstate', function(event) {
