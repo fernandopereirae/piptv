@@ -1,9 +1,19 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const streamURL = urlParams.get('streamURL');
-    const currentPage = urlParams.get('page');
-    const playerElement = document.getElementById('iptvPlayer');
-    const errorMessage = document.getElementById('errorMessage');
+    function getQueryParam(param) {
+        var result = null;
+        var regex = new RegExp("[?&]" + param + "=([^&#]*)");
+        var query = window.location.search;
+        var match = regex.exec(query);
+        if (match != null) {
+            result = decodeURIComponent(match[1]);
+        }
+        return result;
+    }
+
+    var streamURL = getQueryParam('streamURL');
+    var currentPage = getQueryParam('page');
+    var playerElement = document.getElementById('iptvPlayer');
+    var errorMessage = document.getElementById('errorMessage');
 
     function handleError(error) {
         console.error('Erro ao reproduzir o vídeo:', error);
@@ -15,16 +25,16 @@ document.addEventListener('DOMContentLoaded', function() {
         playerElement.src = streamURL;
         playerElement.autoplay = true;
 
-        playerElement.addEventListener('canplay', () => {
+        playerElement.addEventListener('canplay', function() {
             playerElement.play().catch(handleError);
         });
 
         playerElement.addEventListener('error', handleError);
     } else {
-        window.location.href = `index.html${currentPage ? '?page=' + currentPage : ''}`;
+        window.location.href = 'index.html' + (currentPage ? '?page=' + currentPage : '');
     }
 
     window.addEventListener('popstate', function(event) {
-        window.location.href = `index.html${currentPage ? '?page=' + currentPage : ''}`;
+        window.location.href = 'index.html' + (currentPage ? '?page=' + currentPage : '');
     });
 });
