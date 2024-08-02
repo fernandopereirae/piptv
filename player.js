@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const currentPage = urlParams.get('page');
     const playerElement = document.getElementById('iptvPlayer');
     const errorMessage = document.getElementById('errorMessage');
-    const player = videojs(playerElement);
 
     function handleError(error) {
         console.error('Erro ao reproduzir o vídeo:', error);
@@ -13,14 +12,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (streamURL) {
-        player.src({ src: streamURL, type: 'application/x-mpegURL' });
-        player.autoplay(true);
+        playerElement.src = streamURL;
+        playerElement.autoplay = true;
 
-        player.on('canplay', () => {
-            player.play().catch(handleError);
+        playerElement.addEventListener('canplay', () => {
+            playerElement.play().catch(handleError);
         });
 
-        player.on('error', handleError);
+        playerElement.addEventListener('error', handleError);
     } else {
         window.location.href = `index.html${currentPage ? '?page=' + currentPage : ''}`;
     }
