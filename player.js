@@ -13,15 +13,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (playerElement) {
         if (streamURL) {
-            playerElement.src = streamURL;
-            playerElement.autoplay = true;
+            // Verifique se o URL é válido
+            try {
+                const decodedStreamURL = decodeURIComponent(streamURL);
+                playerElement.src = decodedStreamURL;
 
-            // Verifica se o navegador permite autoplay
-            playerElement.addEventListener('canplay', () => {
-                playerElement.play().catch(handleError);
-            });
+                // Defina autoplay e garanta que o vídeo seja reproduzido em resposta a uma interação do usuário
+                playerElement.autoplay = true;
+                playerElement.controls = true; // Adiciona controles para ajudar na depuração
 
-            playerElement.addEventListener('error', handleError);
+                // Adiciona eventos para manejar reprodução e erros
+                playerElement.addEventListener('canplay', () => {
+                    playerElement.play().catch(handleError);
+                });
+
+                playerElement.addEventListener('error', handleError);
+
+            } catch (e) {
+                handleError(e);
+            }
         } else {
             window.location.href = `index.html${currentPage ? '?page=' + currentPage : ''}`;
         }
@@ -29,7 +39,8 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('Elemento de player não encontrado.');
     }
 
-    window.addEventListener('popstate', function(event) {
+    // Gerencia o histórico do navegador
+    window.addEventListener('popstate', function() {
         window.location.href = `index.html${currentPage ? '?page=' + currentPage : ''}`;
     });
 });
