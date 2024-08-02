@@ -25,10 +25,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     window.addEventListener('popstate', function(event) {
-        if (currentPage) {
-            window.location.href = `index.html?page=${currentPage}`;
-        } else {
-            window.location.href = 'index.html';
-        }
+        window.location.href = `index.html${currentPage ? '?page=' + currentPage : ''}`;
     });
 });
