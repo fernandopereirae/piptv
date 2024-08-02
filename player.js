@@ -7,8 +7,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function handleError(error) {
         console.error('Erro ao reproduzir o vídeo:', error);
-        errorMessage.textContent = 'Ocorreu um erro ao reproduzir o vídeo. Por favor, tente novamente mais tarde.';
-        errorMessage.style.display = 'block';
+        if (errorMessage) {
+            errorMessage.textContent = 'Ocorreu um erro ao reproduzir o vídeo. Por favor, tente novamente mais tarde.';
+            errorMessage.style.display = 'block';
+        }
     }
 
     if (playerElement) {
@@ -16,11 +18,11 @@ document.addEventListener('DOMContentLoaded', function() {
             // Verifique se o URL é válido
             try {
                 const decodedStreamURL = decodeURIComponent(streamURL);
+                
+                // Configura o elemento de vídeo
                 playerElement.src = decodedStreamURL;
-
-                // Defina autoplay e garanta que o vídeo seja reproduzido em resposta a uma interação do usuário
                 playerElement.autoplay = true;
-                playerElement.controls = true; // Adiciona controles para ajudar na depuração
+                playerElement.controls = true; // Adiciona controles para facilitar a depuração
 
                 // Adiciona eventos para manejar reprodução e erros
                 playerElement.addEventListener('canplay', () => {
@@ -33,14 +35,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 handleError(e);
             }
         } else {
-            window.location.href = `index.html${currentPage ? '?page=' + currentPage : ''}`;
+            // Garante que `currentPage` seja tratado corretamente
+            const redirectUrl = `index.html${currentPage ? '?page=' + encodeURIComponent(currentPage) : ''}`;
+            window.location.href = redirectUrl;
         }
     } else {
         console.error('Elemento de player não encontrado.');
+        if (errorMessage) {
+            errorMessage.textContent = 'O player de vídeo não foi encontrado.';
+            errorMessage.style.display = 'block';
+        }
     }
 
     // Gerencia o histórico do navegador
     window.addEventListener('popstate', function() {
-        window.location.href = `index.html${currentPage ? '?page=' + currentPage : ''}`;
+        const redirectUrl = `index.html${currentPage ? '?page=' + encodeURIComponent(currentPage) : ''}`;
+        window.location.href = redirectUrl;
     });
 });
