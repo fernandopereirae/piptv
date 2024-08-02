@@ -71,9 +71,8 @@ function displayBatch(startIndex, endIndex) {
 
             card.addEventListener('click', () => {
                 const streamURL = `${baseURL}/live/${baseLogin}/${basePassword}/${channel.stream_id}.m3u8`;
-                // Salva a página atual no localStorage antes de abrir o player
-                localStorage.setItem('previousPage', window.location.href);
-                window.open(`player.html?streamURL=${encodeURIComponent(streamURL)}`, '_blank');
+                // Adiciona a página atual à URL do player
+                window.open(`player.html?streamURL=${encodeURIComponent(streamURL)}&page=${currentPage}`, '_blank');
             });
 
             channelList.appendChild(card);
@@ -114,14 +113,11 @@ function fetchChannels() {
 
         categoriesData = categoriesDataFetched;
 
-        // Restaura a página salva no localStorage ou exibe a primeira página
-        const previousPage = localStorage.getItem('previousPage');
-        if (previousPage) {
-            const url = new URL(previousPage);
-            const page = url.searchParams.get('page');
-            if (page) {
-                currentPage = parseInt(page, 10);
-            }
+        // Restaura a página salva na URL ou exibe a primeira página
+        const urlParams = new URLSearchParams(window.location.search);
+        const page = urlParams.get('page');
+        if (page) {
+            currentPage = parseInt(page, 10);
         }
 
         displayBatch(currentPage * CATEGORIES_PER_PAGE, (currentPage + 1) * CATEGORIES_PER_PAGE);
@@ -135,7 +131,7 @@ document.getElementById('prev-button').addEventListener('click', () => {
     if (currentPage > 0) {
         currentPage--;
         displayBatch(currentPage * CATEGORIES_PER_PAGE, (currentPage + 1) * CATEGORIES_PER_PAGE);
-        localStorage.setItem('previousPage', `${window.location.pathname}?page=${currentPage}`);
+        history.pushState(null, '', `?page=${currentPage}`);
     }
 });
 
@@ -143,7 +139,7 @@ document.getElementById('next-button').addEventListener('click', () => {
     if ((currentPage + 1) * CATEGORIES_PER_PAGE < categoriesData.length) {
         currentPage++;
         displayBatch(currentPage * CATEGORIES_PER_PAGE, (currentPage + 1) * CATEGORIES_PER_PAGE);
-        localStorage.setItem('previousPage', `${window.location.pathname}?page=${currentPage}`);
+        history.pushState(null, '', `?page=${currentPage}`);
     }
 });
 

@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     const urlParams = new URLSearchParams(window.location.search);
     const streamURL = urlParams.get('streamURL');
+    const currentPage = urlParams.get('page');
     const playerElement = document.getElementById('iptvPlayer');
     const errorMessage = document.getElementById('errorMessage');
     const player = videojs(playerElement);
@@ -21,12 +22,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         player.on('error', handleError);
     } else {
-        window.location.href = 'index.html';
+        window.location.href = `index.html${currentPage ? '?page=' + currentPage : ''}`;
     }
 
     window.addEventListener('popstate', function(event) {
-        // Salva a URL da página atual antes de redirecionar
-        localStorage.setItem('previousPage', window.location.href);
-        window.location.href = 'index.html';
+        window.location.href = `index.html${currentPage ? '?page=' + currentPage : ''}`;
     });
 });
