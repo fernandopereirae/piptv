@@ -87,3 +87,17 @@ body {
     background-color: #666; /* Cor para botões desativados */
     cursor: not-allowed;
 }
+
+/* Estilo do player de vídeo */
+.input-video {
+    display: flex;
+    justify-content: center; /* Centraliza o player horizontalmente */
+    align-items: center; /* Centraliza o player verticalmente */
+    margin-top: 20px;
+}
+
+#iptvPlayer {
+    width: 100%;
+    max-width: 800px; /* Tamanho máximo do player */
+    height: auto; /* Mantém a proporção do vídeo */
+}
