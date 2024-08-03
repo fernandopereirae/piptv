@@ -1,65 +1,54 @@
-const baseURL = 'http://pfsv.io'; // Substitua 'YOUR_BASE_URL' pela URL desejada
-const baseLogin = 'elianolista'; // Substitua 'YOUR_LOGIN' pelo login desejado
-const basePassword = 'sualista'; // Substitua 'YOUR_PASSWORD' pela senha desejada
-const CATEGORIES_PER_PAGE = 1; // Número de categorias por página
 
-let currentPage = 0;
-let categoriesData = [];
+document.addEventListener("DOMContentLoaded", async function() {
+    const url = sessionStorage.getItem('baseURL');
+    const login = sessionStorage.getItem('baseLogin');
+    const password = sessionStorage.getItem('basePassword');
 
-function fetchWithTimeout(url, timeout = 10000) {
-    return new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        let timer;
-
-        xhr.open('GET', url, true);
-
-        xhr.onload = () => {
-            clearTimeout(timer);
-            if (xhr.status >= 200 && xhr.status < 300) {
-                try {
-                    resolve(JSON.parse(xhr.responseText));
-                } catch (e) {
-                    reject('Erro ao processar a resposta.');
-                }
-            } else {
-                reject('Erro na requisição: ' + xhr.statusText);
-            }
-        };
-
-        xhr.onerror = () => {
-            clearTimeout(timer);
-            reject('Erro na requisição.');
-        };
-
-        timer = setTimeout(() => {
-            xhr.abort();
-            reject('A requisição foi abortada por timeout.');
-        }, timeout);
-
-        xhr.send();
-    });
-}
-
-function displayBatch(startIndex, endIndex) {
-    const categoryContainer = document.getElementById('category-container');
-
-    if (!categoryContainer) {
-        console.error('Elemento "category-container" não encontrado no DOM.');
+    if (!url || !login || !password) {
+        console.error('Credenciais não encontradas.');
+        window.location.href = 'index.html';
         return;
     }
 
-    // Limpa o container antes de adicionar novas categorias
-    categoryContainer.innerHTML = '';
+    const categoryContainer = document.getElementById('category-container');
+    const loadingIndicator = document.getElementById('loading-indicator');
 
-    categoriesData.slice(startIndex, endIndex).forEach(category => {
-        const categoryDiv = document.createElement('div');
-        categoryDiv.className = 'category';
-        categoryDiv.innerHTML = `<h2>${category.category_name}</h2>`;
-        
-        const channelList = document.createElement('div');
-        channelList.className = 'channel-list';
+    async function fetchWithTimeout(resource, options = { timeout: 10000 }) {
+        const { timeout } = options;
+        const controller = new AbortController();
+        const id = setTimeout(() => controller.abort(), timeout);
+        const response = await fetch(resource, { ...options, signal: controller.signal });
+        clearTimeout(id);
 
-        category.channels.forEach(channel => {
+        if (!response.ok) throw new Error('Erro na requisição: ' + response.statusText);
+        return response.json();
+    }
+
+    async function loadData(type) {
+        const cachedData = sessionStorage.getItem(`${type}Data`);
+        if (cachedData) return JSON.parse(cachedData);
+
+        // Antes de iniciar a requisição, ajustamos a cor de fundo para verde
+        loadingIndicator.classList.add('loading-success');
+        loadingIndicator.classList.remove('loading-error');
+
+        try {
+            const data = await fetchWithTimeout(`${url}/player_api.php?username=${login}&password=${password}&action=get_${type}`);
+            if (!data || !Array.isArray(data)) throw new Error(`Erro ao buscar ${type}`);
+
+            sessionStorage.setItem(`${type}Data`, JSON.stringify(data));
+            return data;
+        } catch (error) {
+            console.error(`Erro ao buscar ${type}:`, error);
+            // Se ocorrer um erro, ajustamos a cor de fundo para vermelho
+            loadingIndicator.classList.remove('loading-success');
+            loadingIndicator.classList.add('loading-error');
+            throw error; // Reenvia o erro para o bloco catch no init()
+        }
+    }
+
+    function appendChannels(channels, container) {
+        channels.forEach(channel => {
             const card = document.createElement('div');
             card.className = 'channel-item';
             card.dataset.streamId = channel.stream_id;
@@ -70,74 +59,51 @@ function displayBatch(startIndex, endIndex) {
             `;
 
             card.addEventListener('click', () => {
-                const streamURL = `${baseURL}/live/${baseLogin}/${basePassword}/${channel.stream_id}.m3u8`;
-                // Manter a página atual e passar a URL do stream
-                window.location.href = `player.html?streamURL=${encodeURIComponent(streamURL)}&page=${currentPage}`;
+                const streamURL = `${url}/live/${login}/${password}/${channel.stream_id}.m3u8`;
+                sessionStorage.setItem('lastPlayedStream', streamURL);
+                window.location.href = `playerv.html?streamUrl=${encodeURIComponent(streamURL)}`;
             });
 
-            channelList.appendChild(card);
+            container.appendChild(card);
         });
-
-        categoryDiv.appendChild(channelList);
-        categoryContainer.appendChild(categoryDiv);
-    });
-
-    updateNavigationButtons();
-}
-
-function updateNavigationButtons() {
-    const prevButton = document.getElementById('prev-button');
-    const nextButton = document.getElementById('next-button');
-
-    if (prevButton) {
-        prevButton.disabled = currentPage === 0;
     }
-    if (nextButton) {
-        nextButton.disabled = (currentPage + 1) * CATEGORIES_PER_PAGE >= categoriesData.length;
-    }
-}
 
-function fetchChannels() {
-    Promise.all([
-        fetchWithTimeout(`${baseURL}/player_api.php?username=${baseLogin}&password=${basePassword}&action=get_live_streams`),
-        fetchWithTimeout(`${baseURL}/player_api.php?username=${baseLogin}&password=${basePassword}&action=get_live_categories`)
-    ])
-    .then(results => {
-        const channelsData = results[0];
-        const categoriesDataFetched = results[1];
+    async function init() {
+        try {
+            // Inicia o indicador visual como verde durante o carregamento
+            loadingIndicator.classList.add('loading-success');
 
-        if (!Array.isArray(channelsData) || !Array.isArray(categoriesDataFetched)) {
-            throw new Error('Formato de dados inesperado.');
+            const categoriesData = await loadData('live_categories');
+            const channelsData = await loadData('live_streams');
+
+            categoriesData.forEach(category => {
+                category.channels = channelsData.filter(channel => channel.category_id === category.category_id);
+            });
+
+            categoryContainer.innerHTML = '';
+
+            categoriesData.forEach(category => {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'category';
+
+                categoryDiv.innerHTML = `<h2>${category.category_name}</h2>`;
+                const channelList = document.createElement('div');
+                channelList.className = 'channel-list';
+
+                appendChannels(category.channels, channelList);
+                categoryDiv.appendChild(channelList);
+                categoryContainer.appendChild(categoryDiv);
+            });
+
+            categoryContainer.style.display = 'block';
+        } catch (error) {
+            console.error('Erro ao carregar categorias e canais:', error);
+            // Tratamento de erro necessário, se desejar adicionar
+        } finally {
+            // Garante que o indicador visual seja removido após o carregamento
+            loadingIndicator.classList.remove('loading-success', 'loading-error');
         }
-
-        // Associa canais a categorias
-        categoriesDataFetched.forEach(category => {
-            category.channels = channelsData.filter(channel => channel.category_id === category.category_id);
-        });
-
-        categoriesData = categoriesDataFetched;
-
-        // Exibe a primeira página
-        displayBatch(0, CATEGORIES_PER_PAGE);
-    })
-    .catch(error => {
-        console.error('Erro ao buscar dados:', error);
-    });
-}
-
-document.getElementById('prev-button')?.addEventListener('click', () => {
-    if (currentPage > 0) {
-        currentPage--;
-        displayBatch(currentPage * CATEGORIES_PER_PAGE, (currentPage + 1) * CATEGORIES_PER_PAGE);
     }
-});
 
-document.getElementById('next-button')?.addEventListener('click', () => {
-    if ((currentPage + 1) * CATEGORIES_PER_PAGE < categoriesData.length) {
-        currentPage++;
-        displayBatch(currentPage * CATEGORIES_PER_PAGE, (currentPage + 1) * CATEGORIES_PER_PAGE);
-    }
+    await init();
 });
-
-// Chama a função ao carregar a página ou em outro ponto adequado
-document.addEventListener('DOMContentLoaded', fetchChannels);

@@ -1,20 +1,24 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Player IPTV</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>IPTV Login</title>
+    <link rel="stylesheet" type="text/css" href="styles.css">
 </head>
 <body>
-    <div id="loadingMessage" class="loading-message">Carregando canais...</div>
-    <div id="category-container" class="category-container"></div>
-    <div class="navigation">
-        <button id="prev-button">Anterior</button>
-        <button id="next-button">Próximo</button>
+    <div class="login-container" id="loginContainer">
+        <h2>Login</h2>
+        <form id="loginForm">
+            <input type="text" id="urlInput" placeholder="URL" required><br>
+            <input type="text" id="loginInput" placeholder="Login" required><br>
+            <input type="text" id="passwordInput" placeholder="Password" required><br>
+            <button type="submit">Entrar</button>
+        </form>
+        <select id="channelList" style="display:none;"></select>
+        <video id="iptvPlayer" controls style="display:none;"></video>
     </div>
-    <script src="script.js"></script>
-    <script>
+    <script src="login.js">
+  </script>
+  <script>
         (function () {
             var script = document.createElement('script');
             script.src = "//cdn.jsdelivr.net/npm/eruda";

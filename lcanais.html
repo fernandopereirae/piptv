@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+        <div id="category-container" class="category-container" style="display: none;">
+     
+</div>
+<div id="loading-indicator"></div>
+     <select id="channelList" style="display:none;"></select>
+    <script src="script.js"></script>
+    <script>
+        (function () {
+            var script = document.createElement('script');
+            script.src = "//cdn.jsdelivr.net/npm/eruda";
+            document.body.appendChild(script);
+            script.onload = function () { eruda.init() }
+        })();
+    </script>
+</body>
+</html>

@@ -1,103 +1,157 @@
+/* Configuração geral do corpo */
 body {
-    font-family: Arial, sans-serif;
+    height: 100%;
     margin: 0;
-    padding: 20px;
-    background-color: #141414; /* Cor de fundo escura, semelhante ao Netflix */
-    color: #fff; /* Texto em cor branca para contraste */
-}
-
-.loading-message {
-    text-align: center;
-    font-size: 1.2em;
-    color: #fff; /* Mensagem de carregamento em branco */
-    margin-top: 20px;
-    display: none; /* Oculta a mensagem de carregamento por padrão */
-}
-
-.category-container {
-    margin-top: 20px;
-}
-
-.category {
-    margin-bottom: 40px;
-}
-
-.category h2 {
-    font-size: 1.5em;
-    margin-bottom: 10px;
-    color: #e50914; /* Cor vermelha do título da categoria, estilo Netflix */
-}
-
-.channel-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 35px; /* Espaçamento entre os itens */
-}
-
-.channel-item {
-    background: #333; /* Fundo escuro dos itens */
-    border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-    cursor: pointer;
-    padding: 40px;
-    text-align: center;
-    transition: all 0.3s ease;
-    width: calc(25% - 15px); /* Ajusta a largura dos itens com base no layout */
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: flex-start;
+    font-family: Arial, sans-serif;
+    background-color: #141414;
+    color: white;
+    overflow-x: hidden;
+}
+
+/* Container de login */
+.login-container {
+    text-align: center;
+    border: 1px solid #333;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    background-color: #1f1f1f;
+    color: white;
+    margin-top: 20vh;
+}
+
+.login-container input {
+    width: 80%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #555;
+    border-radius: 5px;
+    background-color: #333;
+    color: white;
+}
+
+.login-container button {
+    width: 86%;
+    padding: 10px;
+    background-color: #e50914;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.login-container button:hover {
+    background-color: #f6121d;
+}
+
+/* Container de categorias */
+.category-container {
+    width: 100%;
+    padding: 20px;
+    margin-top: 20px;
+    background-color: #141414;
+}
+
+/* Estilo dos títulos das categorias */
+.category h2 {
+    font-size: 24px;
+    margin-bottom: 10px;
+    padding: 10px;
+    border-left: 5px solid #e50914;
+    color: #fff;
+}
+
+/* Estilo para a lista de canais */
+.channel-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px,4fr));
+    gap: 20px;
+    padding: 10px;
+}
+
+/* Estilo para cada item de canal */
+.channel-item {
+    padding: 15px;
+    background-color: #1f1f1f;
+    border: none;
+    border-radius: 10px;
+    text-align: center;
+    color: white;
+    cursor: pointer;
+    transition: transform 0.2s;
 }
 
 .channel-item:hover {
-    transform: scale(1.02);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+    background-color: #333;
+    transform: scale(1.05);
 }
 
-.channel-icon {
-    width: 100px; /* Ajusta conforme necessário */
-    height: 100px; /* Ajusta conforme necessário */
-    object-fit: cover;
-    margin-bottom: 10px; /* Adiciona espaço abaixo da imagem */
-}
-
+/* Estilo para o nome do canal */
 .channel-name {
-    font-size: 1em;
-    color: #fff; /* Nome do canal em branco */
-}
-
-#prev-button,
-#next-button {
-    background-color: #e50914; /* Botões com a mesma cor vermelha do título */
-    border: none;
-    border-radius: 5px;
+    font-size: 14px;
+    margin-top: 10px;
     color: #fff;
-    cursor: pointer;
-    font-size: 1em;
-    padding: 10px 20px;
-    transition: background-color 0.3s ease;
 }
 
-#prev-button:hover,
-#next-button:hover {
-    background-color: #b81d24; /* Cor um pouco mais escura para o hover */
+/* Estilo para o ícone do canal */
+.channel-icon {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 10px;
 }
 
-#prev-button:disabled,
-#next-button:disabled {
-    background-color: #666; /* Cor para botões desativados */
-    cursor: not-allowed;
-}
-
-/* Estilo do player de vídeo */
-.input-video {
-    display: flex;
-    justify-content: center; /* Centraliza o player horizontalmente */
-    align-items: center; /* Centraliza o player verticalmente */
-    margin-top: 20px;
-}
-
-#iptvPlayer {
+/* Estilo para o container do loader */
+#loader-container {
+    display: none; /* começa oculto */
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 100%;
-    max-width: 800px; /* Tamanho máximo do player */
-    height: auto; /* Mantém a proporção do vídeo */
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* fundo semi-transparente */
+    z-index: 1000; /* garantir que está acima de todos os elementos */
+}
+
+/* Estilo para o loader */
+#loader {
+    border: 4px solid rgba(255, 255, 255, 0.3); /* cor do loader */
+    border-radius: 50%;
+    border-top: 4px solid #e50914; /* cor do loader */
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+#loading-indicator {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: block;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000; /* Ajuste conforme necessário */
+}
+
+.loading-success {
+    background-color: #4CAF50; /* Verde */
+}
+
+.loading-error {
+    background-color: #f44336; /* Vermelho */
 }
