@@ -11,10 +11,14 @@ function fetchWithTimeout(url, timeout = 10000) {
         const xhr = new XMLHttpRequest();
         let timer;
 
+        console.log(`Fetching data from ${url}`); // Log da URL sendo requisitada
+
         xhr.open('GET', url, true);
 
         xhr.onload = () => {
             clearTimeout(timer);
+            console.log(`Response from ${url}:`, xhr.responseText); // Log da resposta
+
             if (xhr.status >= 200 && xhr.status < 300) {
                 try {
                     resolve(JSON.parse(xhr.responseText));
@@ -47,6 +51,8 @@ function displayBatch(startIndex, endIndex) {
         console.error('Elemento "category-container" não encontrado no DOM.');
         return;
     }
+
+    console.log('Displaying batch from', startIndex, 'to', endIndex); // Log dos índices de exibição
 
     // Limpa o container antes de adicionar novas categorias
     categoryContainer.innerHTML = '';
@@ -89,6 +95,11 @@ function updateNavigationButtons() {
     const prevButton = document.getElementById('prev-button');
     const nextButton = document.getElementById('next-button');
 
+    console.log('Updating navigation buttons:', {
+        prevButtonDisabled: currentPage === 0,
+        nextButtonDisabled: (currentPage + 1) * CATEGORIES_PER_PAGE >= categoriesData.length
+    }); // Log do estado dos botões
+
     if (prevButton) {
         prevButton.disabled = currentPage === 0;
     }
@@ -105,6 +116,9 @@ function fetchChannels() {
     .then(results => {
         const channelsData = results[0];
         const categoriesDataFetched = results[1];
+
+        console.log('Channels data:', channelsData); // Log dos dados de canais
+        console.log('Categories data:', categoriesDataFetched); // Log dos dados de categorias
 
         if (!Array.isArray(channelsData) || !Array.isArray(categoriesDataFetched)) {
             throw new Error('Formato de dados inesperado.');
