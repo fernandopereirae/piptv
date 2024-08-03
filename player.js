@@ -23,7 +23,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (fileExtension === 'mp4') {
                     playerElement.src = decodedStreamURL;
                     playerElement.autoplay = true;
-                    playerElement.controls = true;
 
                     playerElement.addEventListener('canplay', () => {
                         playerElement.play().catch(handleError);
@@ -31,7 +30,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     playerElement.addEventListener('error', handleError);
                 } else if (fileExtension === 'm3u8') {
-                    handleError('Formatos M3U8 não são suportados diretamente pelo player HTML5.');
+                    if (Hls.isSupported()) {
+                        const hls = new Hls();
+                        hls.loadSource(decodedStreamURL);
+                        hls.attachMedia(playerElement);
+                        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                            playerElement.play().catch(handleError);
+                        });
+                        hls.on(Hls.Events.ERROR, (event, data) => {
+                            handleError(`Erro HLS: ${data.type} - ${data.details}`);
+                        });
+                    } else if (playerElement.canPlayType('application/vnd.apple.mpegurl')) {
+                        playerElement.src = decodedStreamURL;
+                        playerElement.addEventListener('canplay', () => {
+                            playerElement.play().catch(handleError);
+                        });
+                        playerElement.addEventListener('error', handleError);
+                    } else {
+                        handleError('O navegador não suporta a reprodução de HLS.');
+                    }
                 } else {
                     handleError('Formato de vídeo não suportado. Use apenas MP4 ou M3U8.');
                 }
