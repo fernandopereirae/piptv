@@ -13,6 +13,14 @@
         <button id="prev-button">Anterior</button>
         <button id="next-button">Próximo</button>
     </div>
+    <script>
+        (function () {
+            var script = document.createElement('script');
+            script.src = "//cdn.jsdelivr.net/npm/eruda";
+            document.body.appendChild(script);
+            script.onload = function () { eruda.init() }
+        })();
+    </script>
     <script src="script.js"></script>
 </body>
 </html>
