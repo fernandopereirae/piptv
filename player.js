@@ -18,23 +18,9 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 const decodedStreamURL = decodeURIComponent(streamURL);
 
-                if (Hls.isSupported()) {
-                    const hls = new Hls();
-                    hls.loadSource(decodedStreamURL);
-                    hls.attachMedia(playerElement);
-                    hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                        playerElement.play().catch(handleError);
-                    });
-                    hls.on(Hls.Events.ERROR, (event, data) => {
-                        if (data.fatal === Hls.ErrorTypes.NETWORK_ERROR) {
-                            handleError('Erro de rede.');
-                        } else if (data.fatal === Hls.ErrorTypes.MEDIA_ERROR) {
-                            handleError('Erro de mídia.');
-                        } else if (data.fatal === Hls.ErrorTypes.OTHER_ERROR) {
-                            handleError('Outro erro.');
-                        }
-                    });
-                } else {
+                // Verificar se o URL é MP4 ou M3U8
+                const fileExtension = decodedStreamURL.split('.').pop().toLowerCase();
+                if (fileExtension === 'mp4') {
                     playerElement.src = decodedStreamURL;
                     playerElement.autoplay = true;
                     playerElement.controls = true;
@@ -44,10 +30,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
 
                     playerElement.addEventListener('error', handleError);
+                } else if (fileExtension === 'm3u8') {
+                    handleError('Formatos M3U8 não são suportados diretamente pelo player HTML5.');
+                } else {
+                    handleError('Formato de vídeo não suportado. Use apenas MP4 ou M3U8.');
                 }
             } catch (e) {
                 handleError(e);
             }
+        } else {
+            const redirectUrl = `index.html${currentPage ? '?page=' + encodeURIComponent(currentPage) : ''}`;
+            window.location.href = redirectUrl;
+        }
     } else {
         console.error('Elemento de player não encontrado.');
         if (errorMessage) {
