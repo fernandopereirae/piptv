@@ -56,9 +56,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 handleError(e);
             }
         } else {
-            const redirectUrl = `index.html${currentPage ? '?page=' + encodeURIComponent(currentPage) : ''}`;
-            window.location.href = redirectUrl;
-        }
+        	}
     } else {
         console.error('Elemento de player não encontrado.');
         if (errorMessage) {
