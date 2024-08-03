@@ -1,7 +1,7 @@
-const baseURL = 'http://pfsv.io';
-const baseLogin = 'elianolista';
-const basePassword = 'sualista';
-const CATEGORIES_PER_PAGE = 1;
+const baseURL = 'http://pfsv.io'; // Substitua 'YOUR_BASE_URL' pela URL desejada
+const baseLogin = 'elianolista'; // Substitua 'YOUR_LOGIN' pelo login desejado
+const basePassword = 'sualista'; // Substitua 'YOUR_PASSWORD' pela senha desejada
+const CATEGORIES_PER_PAGE = 1; // Número de categorias por página
 
 let currentPage = 0;
 let categoriesData = [];
@@ -48,6 +48,7 @@ function displayBatch(startIndex, endIndex) {
         return;
     }
 
+    // Limpa o container antes de adicionar novas categorias
     categoryContainer.innerHTML = '';
 
     categoriesData.slice(startIndex, endIndex).forEach(category => {
@@ -70,6 +71,7 @@ function displayBatch(startIndex, endIndex) {
 
             card.addEventListener('click', () => {
                 const streamURL = `${baseURL}/live/${baseLogin}/${basePassword}/${channel.stream_id}.m3u8`;
+                // Manter a página atual e passar a URL do stream
                 window.location.href = `player.html?streamURL=${encodeURIComponent(streamURL)}&page=${currentPage}`;
             });
 
@@ -87,8 +89,12 @@ function updateNavigationButtons() {
     const prevButton = document.getElementById('prev-button');
     const nextButton = document.getElementById('next-button');
 
-    if (prevButton) prevButton.disabled = currentPage === 0;
-    if (nextButton) nextButton.disabled = (currentPage + 1) * CATEGORIES_PER_PAGE >= categoriesData.length;
+    if (prevButton) {
+        prevButton.disabled = currentPage === 0;
+    }
+    if (nextButton) {
+        nextButton.disabled = (currentPage + 1) * CATEGORIES_PER_PAGE >= categoriesData.length;
+    }
 }
 
 function fetchChannels() {
@@ -104,11 +110,14 @@ function fetchChannels() {
             throw new Error('Formato de dados inesperado.');
         }
 
+        // Associa canais a categorias
         categoriesDataFetched.forEach(category => {
             category.channels = channelsData.filter(channel => channel.category_id === category.category_id);
         });
 
         categoriesData = categoriesDataFetched;
+
+        // Exibe a primeira página
         displayBatch(0, CATEGORIES_PER_PAGE);
     })
     .catch(error => {
@@ -130,4 +139,5 @@ document.getElementById('next-button')?.addEventListener('click', () => {
     }
 });
 
+// Chama a função ao carregar a página ou em outro ponto adequado
 document.addEventListener('DOMContentLoaded', fetchChannels);
