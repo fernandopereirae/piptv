@@ -1,4 +1,3 @@
-
 document.addEventListener("DOMContentLoaded", async function() {
     const url = sessionStorage.getItem('baseURL');
     const login = sessionStorage.getItem('baseLogin');
@@ -24,14 +23,25 @@ document.addEventListener("DOMContentLoaded", async function() {
         return response.json();
     }
 
+    function showLoading() {
+        loadingIndicator.style.backgroundColor = 'green';
+        loadingIndicator.style.display = 'block';
+    }
+
+    function hideLoading() {
+        loadingIndicator.style.display = 'none';
+    }
+
+    function showError() {
+        loadingIndicator.style.backgroundColor = 'red';
+        loadingIndicator.style.display = 'block';
+    }
+
     async function loadData(type) {
         const cachedData = sessionStorage.getItem(`${type}Data`);
         if (cachedData) return JSON.parse(cachedData);
 
-        // Antes de iniciar a requisição, ajustamos a cor de fundo para verde
-        loadingIndicator.classList.add('loading-success');
-        loadingIndicator.classList.remove('loading-error');
-
+        showLoading();
         try {
             const data = await fetchWithTimeout(`${url}/player_api.php?username=${login}&password=${password}&action=get_${type}`);
             if (!data || !Array.isArray(data)) throw new Error(`Erro ao buscar ${type}`);
@@ -40,39 +50,34 @@ document.addEventListener("DOMContentLoaded", async function() {
             return data;
         } catch (error) {
             console.error(`Erro ao buscar ${type}:`, error);
-            // Se ocorrer um erro, ajustamos a cor de fundo para vermelho
-            loadingIndicator.classList.remove('loading-success');
-            loadingIndicator.classList.add('loading-error');
-            throw error; // Reenvia o erro para o bloco catch no init()
+            showError();
+            throw error;
+        } finally {
+            hideLoading();
         }
     }
 
-    function appendChannels(channels, container) {
-        channels.forEach(channel => {
-            const card = document.createElement('div');
-            card.className = 'channel-item';
-            card.dataset.streamId = channel.stream_id;
+    function createChannelCard(channel) {
+        const card = document.createElement('div');
+        card.className = 'channel-item';
+        card.dataset.streamId = channel.stream_id;
 
-            card.innerHTML = `
-                <img src="${channel.stream_icon || ''}" alt="${channel.name}" class="channel-icon">
-                <p class="channel-name">${channel.name}</p>
-            `;
+        card.innerHTML = `
+            <img src="${channel.stream_icon || ''}" alt="${channel.name}" class="channel-icon">
+            <p class="channel-name">${channel.name}</p>
+        `;
 
-            card.addEventListener('click', () => {
-                const streamURL = `${url}/live/${login}/${password}/${channel.stream_id}.m3u8`;
-                sessionStorage.setItem('lastPlayedStream', streamURL);
-                window.location.href = `playerv.html?streamUrl=${encodeURIComponent(streamURL)}`;
-            });
-
-            container.appendChild(card);
+        card.addEventListener('click', () => {
+            const streamURL = `${url}/live/${login}/${password}/${channel.stream_id}.m3u8`;
+            sessionStorage.setItem('lastPlayedStream', streamURL);
+            window.location.href = `playerv.html?streamUrl=${encodeURIComponent(streamURL)}`;
         });
+
+        return card;
     }
 
     async function init() {
         try {
-            // Inicia o indicador visual como verde durante o carregamento
-            loadingIndicator.classList.add('loading-success');
-
             const categoriesData = await loadData('live_categories');
             const channelsData = await loadData('live_streams');
 
@@ -85,12 +90,15 @@ document.addEventListener("DOMContentLoaded", async function() {
             categoriesData.forEach(category => {
                 const categoryDiv = document.createElement('div');
                 categoryDiv.className = 'category';
-
                 categoryDiv.innerHTML = `<h2>${category.category_name}</h2>`;
+
                 const channelList = document.createElement('div');
                 channelList.className = 'channel-list';
 
-                appendChannels(category.channels, channelList);
+                category.channels.forEach(channel => {
+                    channelList.appendChild(createChannelCard(channel));
+                });
+
                 categoryDiv.appendChild(channelList);
                 categoryContainer.appendChild(categoryDiv);
             });
@@ -98,10 +106,6 @@ document.addEventListener("DOMContentLoaded", async function() {
             categoryContainer.style.display = 'block';
         } catch (error) {
             console.error('Erro ao carregar categorias e canais:', error);
-            // Tratamento de erro necessário, se desejar adicionar
-        } finally {
-            // Garante que o indicador visual seja removido após o carregamento
-            loadingIndicator.classList.remove('loading-success', 'loading-error');
         }
     }
 
