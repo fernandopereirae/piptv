@@ -26,35 +26,18 @@ document.addEventListener("DOMContentLoaded", async function() {
     function showLoading() {
         loadingIndicator.style.backgroundColor = 'green';
         loadingIndicator.style.display = 'block';
+        console.log('Indicador de carregamento exibido.');
     }
 
     function hideLoading() {
         loadingIndicator.style.display = 'none';
+        console.log('Indicador de carregamento ocultado.');
     }
 
     function showError() {
         loadingIndicator.style.backgroundColor = 'red';
         loadingIndicator.style.display = 'block';
-    }
-
-    async function loadData(type) {
-        const cachedData = sessionStorage.getItem(`${type}Data`);
-        if (cachedData) return JSON.parse(cachedData);
-
-        showLoading();
-        try {
-            const data = await fetchWithTimeout(`${url}/player_api.php?username=${login}&password=${password}&action=get_${type}`);
-            if (!data || !Array.isArray(data)) throw new Error(`Erro ao buscar ${type}`);
-
-            sessionStorage.setItem(`${type}Data`, JSON.stringify(data));
-            return data;
-        } catch (error) {
-            console.error(`Erro ao buscar ${type}:`, error);
-            showError();
-            throw error;
-        } finally {
-            hideLoading();
-        }
+        console.log('Erro ao carregar dados.');
     }
 
     function createChannelCard(channel) {
@@ -77,9 +60,17 @@ document.addEventListener("DOMContentLoaded", async function() {
     }
 
     async function init() {
+        showLoading();
+        console.log('Iniciando o carregamento dos dados...');
+
         try {
-            const categoriesData = await loadData('live_categories');
-            const channelsData = await loadData('live_streams');
+            const categoriesResponse = await fetchWithTimeout(`${url}/player_api.php?username=${login}&password=${password}&action=get_live_categories`);
+            console.log('Categorias carregadas com sucesso.');
+            const channelsResponse = await fetchWithTimeout(`${url}/player_api.php?username=${login}&password=${password}&action=get_live_streams`);
+            console.log('Canais carregados com sucesso.');
+
+            const categoriesData = await categoriesResponse;
+            const channelsData = await channelsResponse;
 
             categoriesData.forEach(category => {
                 category.channels = channelsData.filter(channel => channel.category_id === category.category_id);
@@ -104,7 +95,10 @@ document.addEventListener("DOMContentLoaded", async function() {
             });
 
             categoryContainer.style.display = 'block';
+            hideLoading();
+            console.log('Categorias e canais exibidos com sucesso.');
         } catch (error) {
+            showError();
             console.error('Erro ao carregar categorias e canais:', error);
         }
     }
